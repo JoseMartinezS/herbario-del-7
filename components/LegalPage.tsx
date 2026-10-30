@@ -57,7 +57,7 @@ export default function LegalPage({
         <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-green-800/80">
           {intro}
         </p>
-        <p className="mt-3 text-sm font-medium text-green-800/60">
+        <p className="mt-3 text-sm font-medium text-green-800/70">
           Última actualización: {updated}
         </p>
       </header>
@@ -78,7 +78,7 @@ export default function LegalPage({
               <li key={section.id} className="flex gap-2.5">
                 <span
                   aria-hidden="true"
-                  className="font-medium text-gold-700"
+                  className="font-medium text-gold-800"
                 >
                   {index + 1}.
                 </span>
@@ -99,7 +99,7 @@ export default function LegalPage({
           {sections.map((section, index) => (
             <section key={section.id} id={section.id} className="scroll-mt-24">
               <h2 className="font-display text-2xl font-semibold tracking-tight text-balance text-green-800">
-                <span aria-hidden="true" className="mr-3 text-gold-700">
+                <span aria-hidden="true" className="mr-3 text-gold-800">
                   {index + 1}.
                 </span>
                 {section.title}

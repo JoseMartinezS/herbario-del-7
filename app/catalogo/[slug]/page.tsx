@@ -148,7 +148,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {product.price !== null ? (
                 <p className="font-display text-3xl font-semibold tracking-tight text-gold-800 sm:text-4xl">
                   ${product.price}
-                  <span className="ml-2 font-sans text-base font-medium text-gold-700">
+                  <span className="ml-2 font-sans text-base font-medium text-gold-800">
                     MXN
                   </span>
                 </p>
@@ -157,7 +157,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <p className="font-display text-xl font-semibold text-terracotta-800">
                     Consulta el precio por WhatsApp
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed text-terracotta-700">
+                  <p className="mt-1 text-sm leading-relaxed text-terracotta-800">
                     Te confirmamos precio y disponibilidad al momento, sin
                     compromiso.
                   </p>

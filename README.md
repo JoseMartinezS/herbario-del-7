@@ -41,8 +41,28 @@ El sitio queda en `http://localhost:3000`.
 | `npm run start` | Sirve el build de producción |
 | `npm run lint` | ESLint (config `next/core-web-vitals` + `next/typescript`) |
 | `npx tsc --noEmit` | Verificación de tipos de todo el proyecto |
+| `npm test` | Suite unitaria (Vitest) |
+| `npm run test:e2e` | E2E con Playwright contra el dev server |
+| `npm run test:e2e:prod` | E2E contra el build de producción (hace `npm run build` él mismo) |
 
 Antes de entregar cambios, corre `npx tsc --noEmit` y `npm run lint`: deben salir sin errores.
+
+## Testing
+
+| Comando | Qué cubre |
+| --- | --- |
+| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod. |
+| `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos) y accesibilidad con axe (WCAG 2.0 A/AA). |
+| `npm run test:e2e:prod` | La misma suite E2E **contra el build de producción**: el script hace `npm run build` y después sirve con `npm run start`. Lo corre el dueño o CI al publicar; no hace falta en el día a día. |
+
+Notas sobre la suite E2E (`tests/e2e/`):
+
+- **El server se levanta solo.** Playwright arranca `npm run dev` vía `webServer` (y lo apaga al terminar). Si ya hay un dev server corriendo en `:3000`, lo reutiliza. Vos no necesitás levantar nada.
+- **Un solo browser (Chromium)** para mantener la suite lean. La primera vez, `npx playwright install chromium` descarga el navegador (~130 MB).
+- **Nunca abre WhatsApp de verdad**: el spec de contacto intercepta `window.open` antes de cargar la página y registra las URLs en `window.__waOpened`.
+- Vitest excluye `tests/e2e/**` (ver `vitest.config.mts`), así que `npm test` y `npm run test:e2e` no se pisan.
+- Config en `playwright.config.ts` (dev) y `playwright.prod.config.ts` (producción).
+
 
 ## Estructura del proyecto
 
@@ -68,6 +88,9 @@ content/                Contenido editable del negocio y del catálogo
   business.ts           Fuente única de verdad del NAP y horarios
   products.json         Catálogo de productos
 lib/                    Lógica: acceso al catálogo, esquema zod, tipos, URL del sitio
+tests/
+  setup.ts              Setup global de Vitest (jest-dom)
+  e2e/                  Specs E2E de Playwright (excluidos de Vitest)
 public/images/          Logo y una ilustración SVG por producto
 ```
 

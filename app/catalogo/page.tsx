@@ -85,7 +85,7 @@ export default async function CatalogoPage({
           />
         </div>
 
-        <p className="mt-6 text-sm font-medium text-green-800/60">
+        <p className="mt-6 text-sm font-medium text-green-800/70">
           {countLabel}
         </p>
 

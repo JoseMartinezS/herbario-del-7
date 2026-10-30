@@ -77,7 +77,7 @@ export default function UbicacionPage() {
               </h2>
               <ul className="mt-4 flex flex-col gap-4">
                 <li>
-                  <h3 className="text-sm font-semibold text-green-800/60">
+                  <h3 className="text-sm font-semibold text-green-800/70">
                     Llamadas
                   </h3>
                   <a
@@ -89,7 +89,7 @@ export default function UbicacionPage() {
                   </a>
                 </li>
                 <li>
-                  <h3 className="text-sm font-semibold text-green-800/60">
+                  <h3 className="text-sm font-semibold text-green-800/70">
                     WhatsApp
                   </h3>
                   <a
@@ -101,7 +101,7 @@ export default function UbicacionPage() {
                     <IconWhatsApp className="h-5 w-5 shrink-0 text-terracotta-600" />
                     {BUSINESS.whatsapp.display}
                   </a>
-                  <p className="mt-1.5 text-sm text-green-800/60">
+                  <p className="mt-1.5 text-sm text-green-800/70">
                     Es un número distinto al de llamadas.
                   </p>
                 </li>

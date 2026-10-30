@@ -79,7 +79,7 @@ export default function HoursList({
 
   const dayClass = tone === "green" ? "text-cream" : "text-green-800";
   const timeClass = tone === "green" ? "text-cream/80" : "text-green-800/75";
-  const noteClass = tone === "green" ? "text-gold-200/90" : "text-terracotta-700";
+  const noteClass = tone === "green" ? "text-gold-200/90" : "text-terracotta-800";
 
   return (
     <div className="flex flex-col gap-2">

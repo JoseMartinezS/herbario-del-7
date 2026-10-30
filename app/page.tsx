@@ -146,7 +146,7 @@ export default function HomePage() {
                   <span className="text-pretty text-sm leading-relaxed text-green-800/70">
                     {info.description}
                   </span>
-                  <span className="mt-auto pt-1 text-xs font-medium text-green-800/60">
+                  <span className="mt-auto pt-1 text-xs font-medium text-green-800/70">
                     {count} {count === 1 ? "producto" : "productos"}
                   </span>
                 </Link>
