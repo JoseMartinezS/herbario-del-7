@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E7ECD2"/>
+      <stop offset="1" stop-color="#C7D2A0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo verde oliva -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="400" cy="400" r="280" fill="#FFFFFF" opacity="0.35"/>
+
+  <!-- Vapor -->
+  <path d="M372,392 C362,362 382,340 372,310 C364,286 380,268 372,244" stroke="#9FB07A" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.75"/>
+  <path d="M428,392 C438,366 420,346 428,318 C434,296 422,280 428,258" stroke="#9FB07A" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Flor de manzanilla (grande, izquierda) -->
+  <g transform="translate(268,300)">
+    <g fill="#FFFEFA">
+      <ellipse cx="0" cy="-32" rx="12" ry="28"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(45)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(90)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(135)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(180)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(225)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(270)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(315)"/>
+    </g>
+    <circle r="15" fill="#D9A441"/>
+    <circle r="15" fill="none" stroke="#C08D31" stroke-width="4"/>
+  </g>
+
+  <!-- Flor de manzanilla (pequeña, derecha) -->
+  <g transform="translate(536,272) scale(0.62)">
+    <g fill="#FFFEFA">
+      <ellipse cx="0" cy="-32" rx="12" ry="28"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(45)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(90)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(135)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(180)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(225)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(270)"/>
+      <ellipse cx="0" cy="-32" rx="12" ry="28" transform="rotate(315)"/>
+    </g>
+    <circle r="15" fill="#D9A441"/>
+    <circle r="15" fill="none" stroke="#C08D31" stroke-width="4"/>
+  </g>
+
+  <!-- Plato -->
+  <ellipse cx="400" cy="588" rx="150" ry="22" fill="#EFEAD8" stroke="#5C6B33" stroke-width="8"/>
+
+  <!-- Taza -->
+  <path d="M498,462 C556,456 560,534 498,530" fill="none" stroke="#5C6B33" stroke-width="14" stroke-linecap="round"/>
+  <path d="M302,430 L302,520 C302,556 340,574 400,574 C460,574 498,556 498,520 L498,430 Z" fill="#FBF8EE" stroke="#5C6B33" stroke-width="10"/>
+  <ellipse cx="400" cy="430" rx="98" ry="18" fill="#FFFDF4" stroke="#5C6B33" stroke-width="10"/>
+  <ellipse cx="400" cy="431" rx="80" ry="13" fill="#D9A441"/>
+
+  <!-- Sombra en el piso -->
+  <ellipse cx="400" cy="626" rx="150" ry="16" fill="#55632C" opacity="0.15"/>
+</svg>

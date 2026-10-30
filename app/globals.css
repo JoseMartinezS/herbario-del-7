@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   Herbario Del 7 — Tokens de diseño (Tailwind CSS v4, CSS-first)
+   ----------------------------------------------------------------------------
+   Paleta herbolaria-esotérica cálida: crema de fondo, verde profundo de marca,
+   terracota y dorado. Mobile-first.
+
+   NOTA para el agente de UI: la escala `green` de Tailwind queda REEMPLAZADA
+   por el verde de marca (las clases `bg-green-600`, `text-green-800`, etc.
+   usan estos tonos, no los default de Tailwind).
+
+   Tipografía: aquí solo se definen los tokens --font-sans y --font-display.
+   El agente de UI conecta las fuentes reales (serif display + sans) vía
+   next/font en app/layout.tsx, actualizando estos valores.
+   ========================================================================== */
+
+@theme {
+  /* --- Tipografía --------------------------------------------------------- */
+  /* Las variables --font-inter / --font-fraunces las inyecta next/font en
+     app/layout.tsx; los stacks de sistema quedan como respaldo. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia,
+    "Palatino Linotype", "Times New Roman", serif;
+
+  /* --- Verde profundo de marca (primario) ----------------------------------
+     600 = #2A4A34 (primario) · 700 = variante profunda para hover/énfasis.
+     800 es el tono de texto de cuerpo.                                      */
+  --color-green-50: #f2f6f3;
+  --color-green-100: #e0eae3;
+  --color-green-200: #c2d5c8;
+  --color-green-300: #9abaa4;
+  --color-green-400: #6e9a7d;
+  --color-green-500: #4a7a5c;
+  --color-green-600: #2a4a34;
+  --color-green-700: #1f3d2a;
+  --color-green-800: #163023;
+  --color-green-900: #0f2418;
+  --color-green-950: #0a1b12;
+
+  /* --- Terracota (acento cálido: CTAs, detalles, focus) -------------------- */
+  --color-terracotta-50: #faf1ea;
+  --color-terracotta-100: #f3e0d0;
+  --color-terracotta-200: #ebc9ac;
+  --color-terracotta-300: #dfac85;
+  --color-terracotta-400: #d39263;
+  --color-terracotta-500: #cb8450;
+  --color-terracotta-600: #c4763b;
+  --color-terracotta-700: #a75f2c;
+  --color-terracotta-800: #8a4e26;
+  --color-terracotta-900: #6f3f20;
+
+  /* --- Dorado (acento secundario: precios, selección, brillos) ------------- */
+  --color-gold-50: #fbf6e8;
+  --color-gold-100: #f5ebcc;
+  --color-gold-200: #edd9a3;
+  --color-gold-300: #e4c475;
+  --color-gold-400: #dfb357;
+  --color-gold-500: #d9a441;
+  --color-gold-600: #c08d31;
+  --color-gold-700: #9e7128;
+  --color-gold-800: #7c5722;
+  --color-gold-900: #5f431c;
+
+  /* --- Cremas y arenas (fondos, superficies, bordes) ------------------------ */
+  --color-cream: #faf7f2;
+  --color-cream-dark: #f1eae1;
+  --color-sand: #e4d9c8;
+
+  /* --- Verdes WhatsApp (CTA y botón flotante de contacto) --------------------
+     `whatsapp` (vivo) se usa en superficies gráficas (botón flotante, íconos);
+     `whatsapp-deep` pasa AA con texto blanco, para botones con texto.        */
+  --color-whatsapp: #23a555;
+  --color-whatsapp-hover: #1c8544;
+  --color-whatsapp-deep: #075e54;
+  --color-whatsapp-deep-hover: #0a6b5f;
+
+  /* --- Radios ----------------------------------------------------------------
+     Bordes ligeramente más suaves que los default, para un aire orgánico.   */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+}
+
+/* ============================================================================
+   Estilos base (SIN estilos de componentes — los definen los agentes de UI)
+   ========================================================================== */
+
+@layer base {
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-green-800);
+  }
+
+  ::selection {
+    background-color: var(--color-gold-200);
+    color: var(--color-green-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-terracotta-600);
+    outline-offset: 2px;
+  }
+}

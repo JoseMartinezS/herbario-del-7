@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F9EFE3"/>
+      <stop offset="1" stop-color="#F2D9CA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo dorado rosado -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="400" cy="400" r="280" fill="#FFFFFF" opacity="0.38"/>
+
+  <!-- Cuerpo de la loción -->
+  <rect x="322" y="368" width="156" height="264" rx="22" fill="#FFFDF8" opacity="0.94"/>
+  <rect x="322" y="368" width="156" height="264" rx="22" fill="none" stroke="#C08D31" stroke-width="10"/>
+
+  <!-- Tapa rosada -->
+  <rect x="368" y="296" width="64" height="76" rx="12" fill="#C98B7E"/>
+  <rect x="368" y="296" width="64" height="76" rx="12" fill="none" stroke="#B07163" stroke-width="8"/>
+  <path d="M384,302 L384,366" stroke="#B07163" stroke-width="6" opacity="0.7"/>
+  <path d="M400,302 L400,366" stroke="#B07163" stroke-width="6" opacity="0.7"/>
+  <path d="M416,302 L416,366" stroke="#B07163" stroke-width="6" opacity="0.7"/>
+
+  <!-- Etiqueta con sprig de ruda -->
+  <rect x="342" y="452" width="116" height="104" rx="14" fill="#F6E7CE"/>
+  <rect x="342" y="452" width="116" height="104" rx="14" fill="none" stroke="#C08D31" stroke-width="6"/>
+  <path d="M400,540 C398,516 400,492 400,470" stroke="#5C6B33" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <g fill="#6C7C3F">
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(398,532) rotate(-62) scale(0.3)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(402,532) rotate(62) scale(0.3)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(398,504) rotate(-54) scale(0.28)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(402,504) rotate(54) scale(0.28)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,472) scale(0.3)"/>
+  </g>
+
+  <!-- Gotas doradas -->
+  <circle cx="292" cy="392" r="10" fill="#D9A441" opacity="0.75"/>
+  <circle cx="512" cy="368" r="7" fill="#D9A441" opacity="0.6"/>
+
+  <!-- Pétalo rosa -->
+  <path d="M0,0 C20,-30 20,-74 0,-98 C-20,-74 -20,-30 0,0 Z" transform="translate(540,486) rotate(36)" fill="#C98B7E" opacity="0.7"/>
+
+  <!-- Destello -->
+  <path d="M286,286 L292,299 L305,305 L292,311 L286,324 L280,311 L267,305 L280,299 Z" fill="#C08D31" opacity="0.55"/>
+
+  <!-- Sombra en el piso -->
+  <ellipse cx="400" cy="646" rx="120" ry="15" fill="#B07163" opacity="0.2"/>
+</svg>

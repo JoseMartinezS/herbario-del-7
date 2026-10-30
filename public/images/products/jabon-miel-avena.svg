@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAEFEA"/>
+      <stop offset="1" stop-color="#D6DFD8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo verde salvia -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="400" cy="400" r="280" fill="#FFFFFF" opacity="0.38"/>
+
+  <!-- Granos de avena flotando -->
+  <g fill="#EFDDBE" stroke="#C9A97E" stroke-width="4">
+    <ellipse cx="286" cy="336" rx="9" ry="16" transform="rotate(-24 286 336)"/>
+    <ellipse cx="516" cy="352" rx="9" ry="16" transform="rotate(18 516 352)"/>
+    <ellipse cx="320" cy="290" rx="9" ry="16" transform="rotate(8 320 290)"/>
+    <ellipse cx="488" cy="298" rx="9" ry="16" transform="rotate(-14 488 298)"/>
+  </g>
+
+  <!-- Barra de jabón: cara frontal y cara superior -->
+  <rect x="280" y="460" width="240" height="132" rx="26" fill="#F4E8D2"/>
+  <rect x="280" y="396" width="240" height="76" rx="26" fill="#FDF8EF"/>
+  <rect x="280" y="396" width="240" height="196" rx="26" fill="none" stroke="#C9A97E" stroke-width="10"/>
+
+  <!-- Óvalo grabado con granos de avena -->
+  <ellipse cx="400" cy="534" rx="64" ry="30" fill="none" stroke="#C9A97E" stroke-width="7" opacity="0.9"/>
+  <ellipse cx="378" cy="532" rx="8" ry="15" transform="rotate(-18 378 532)" fill="#D9B98A"/>
+  <ellipse cx="402" cy="538" rx="8" ry="15" transform="rotate(8 402 538)" fill="#D9B98A"/>
+  <ellipse cx="424" cy="530" rx="8" ry="15" transform="rotate(28 424 530)" fill="#D9B98A"/>
+
+  <!-- Goteo de miel sobre el borde -->
+  <path d="M348,472 C348,486 342,494 342,502 A10,10 0 0 0 362,502 C362,494 356,486 356,472 Z" fill="#D9A441"/>
+  <path d="M448,472 C448,482 444,488 444,494 A8,8 0 0 0 460,494 C460,488 456,482 456,472 Z" fill="#D9A441"/>
+
+  <!-- Sombra en el piso -->
+  <ellipse cx="400" cy="614" rx="150" ry="17" fill="#A98F5F" opacity="0.2"/>
+</svg>

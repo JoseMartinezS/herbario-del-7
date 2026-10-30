@@ -1,0 +1,95 @@
+[
+  {
+    "slug": "veladora-blanca-7-dias",
+    "name": "Veladora Blanca de 7 Días",
+    "shortDescription": "Vela blanca de larga duración para limpias, protección y devoción.",
+    "description": "La veladora blanca es la más versátil del herbolario: en la tradición mexicana se enciende tradicionalmente para limpias, protección y agradecimiento, y para acompañar peticiones de paz y armonía en el hogar.\n\nSu cera de combustión lenta está pensada para acompañarte durante los siete días de una petición o novena. Pregúntanos por la oración o el acompañamiento adecuado para tu intención.",
+    "category": "veladoras",
+    "price": null,
+    "image": "/images/products/veladora-blanca-7-dias.svg",
+    "featured": true
+  },
+  {
+    "slug": "veladora-roja-7-dias",
+    "name": "Veladora Roja de 7 Días",
+    "shortDescription": "Vela roja de 7 días para peticiones de amor, pasión y fuerza.",
+    "description": "En la tradición esotérica mexicana, el color rojo se asocia con el amor, la pasión y la vitalidad. Esta veladora se enciende tradicionalmente para peticiones de amor propio, para fortalecer las relaciones y para levantar el ánimo del hogar.\n\nSu cera de combustión lenta acompaña tus peticiones durante los siete días de la novena. Te podemos asesorar sobre cómo combinarla con hierbas u otras veladoras según tu intención.",
+    "category": "veladoras",
+    "price": 45,
+    "image": "/images/products/veladora-roja-7-dias.svg"
+  },
+  {
+    "slug": "ruda-fresca",
+    "name": "Ruda Fresca (Atado)",
+    "shortDescription": "Atado de ruda fresca para limpias personales y protección del hogar.",
+    "description": "La ruda es una de las plantas más reconocidas de la herbolaria mexicana: se emplea tradicionalmente en limpias personales y para proteger el hogar de energías densas. Su aroma intenso la hace ideal también para baños y sahumerios.\n\nTe entregamos atados de ruda fresca seleccionados en mostrador. Al ser un producto natural, la disponibilidad puede variar según la temporada: consulta por WhatsApp antes de visitarnos.",
+    "category": "hierbas-y-preparados",
+    "price": null,
+    "image": "/images/products/ruda-fresca.svg",
+    "featured": true
+  },
+  {
+    "slug": "te-manzanilla-tila",
+    "name": "Té Relajante de Manzanilla y Tila",
+    "shortDescription": "Mezcla de manzanilla y tila para una infusión suave y aromática.",
+    "description": "La manzanilla y la tila son dos clásicos de la casa mexicana: esta mezcla se emplea tradicionalmente como infusión de sobremesa, perfecta para cerrar el día con un momento de calma.\n\nVierte agua caliente sobre la mezcla, tapa y deja reposar de cinco a siete minutos. Pregunta en mostrador por otras combinaciones de tés y hierbas de la casa.",
+    "category": "hierbas-y-preparados",
+    "price": 60,
+    "image": "/images/products/te-manzanilla-tila.svg"
+  },
+  {
+    "slug": "agua-san-miguel",
+    "name": "Agua de Riego de San Miguel Arcángel",
+    "shortDescription": "Agua de riego de San Miguel Arcángel para protección y limpieza.",
+    "description": "El agua de riego de San Miguel Arcángel se emplea tradicionalmente para limpiar los espacios, cortar energías densas y pedir protección al arcángel. Se usa en baños de piso, para rociar la casa o en limpias personales.\n\nPreparada con hierbas aromáticas y esencias seleccionadas, llega lista para usarse. Escríbenos por WhatsApp y con gusto te orientamos sobre cómo aplicarla según tu necesidad.",
+    "category": "aguas-y-riegos",
+    "price": null,
+    "image": "/images/products/agua-san-miguel.svg",
+    "featured": true
+  },
+  {
+    "slug": "locion-ruda",
+    "name": "Loción de Ruda",
+    "shortDescription": "Loción de ruda para limpias personales, untes y protección.",
+    "description": "La loción de ruda concentra el aroma y las propiedades tradicionales de esta planta en una presentación práctica. Se emplea tradicionalmente para limpias personales, untes y para acompañar trabajos de protección.\n\nSe presenta en frasco con dosificador, lista para aplicar. En mostrador encontrarás también otras lociones y aguas de tocador elaboradas con hierbas.",
+    "category": "lociones",
+    "price": null,
+    "image": "/images/products/locion-ruda.svg"
+  },
+  {
+    "slug": "capsulas-ajo",
+    "name": "Cápsulas de Ajo Deshidratado",
+    "shortDescription": "Cápsulas de ajo deshidratado, complemento tradicional de uso diario.",
+    "description": "El ajo es uno de los ingredientes con más historia en la cocina y la tradición mexicana. En cápsulas de ajo deshidratado es una forma práctica y sin olor de incorporarlo a la rutina diaria como complemento alimenticio.\n\nConsulta la presentación y la disponibilidad por WhatsApp o en mostrador. Podemos orientarte sobre otros suplementos naturistas de la casa.",
+    "category": "capsulas-y-suplementos",
+    "price": null,
+    "image": "/images/products/capsulas-ajo.svg"
+  },
+  {
+    "slug": "shampoo-sabila-romero",
+    "name": "Shampoo de Sábila y Romero",
+    "shortDescription": "Shampoo de sábila y romero para el lavado diario del cabello.",
+    "description": "La sábila y el romero son dos plantas clásicas del cuidado capilar tradicional. Este shampoo combina sus extractos en una fórmula pensada para el lavado diario, con frescura herbal y aroma suave.\n\nApto para uso frecuente. Pregunta también por los demás productos de cuidado personal elaborados con hierbas que tenemos en mostrador.",
+    "category": "cuidado-personal",
+    "price": null,
+    "image": "/images/products/shampoo-sabila-romero.svg"
+  },
+  {
+    "slug": "jabon-miel-avena",
+    "name": "Jabón de Miel y Avena",
+    "shortDescription": "Jabón artesanal de miel y avena, de espuma suave y aroma cálido.",
+    "description": "La miel y la avena son ingredientes clásicos del jabón artesanal mexicano. Este jabón se elabora en pequeñas tandas, con espuma suave y un aroma cálido que deja una sensación agradable en la piel.\n\nIdeal para el baño diario de toda la familia. En mostrador encontrarás otros jabones herbales y artesanales de la casa.",
+    "category": "cuidado-personal",
+    "price": null,
+    "image": "/images/products/jabon-miel-avena.svg"
+  },
+  {
+    "slug": "copal-blanco",
+    "name": "Copal Blanco en Grano",
+    "shortDescription": "Copal blanco en grano para sahumerios y limpias de casa.",
+    "description": "El copal es la resina ceremonial más emblemática de México: desde la época prehispánica se emplea tradicionalmente para sahumar espacios, acompañar ceremonias y elevar peticiones. Su humo blanco y aromático se usa para limpiar el ambiente.\n\nSe presenta en grano, listo para quemarse en sahumerio o bracero. Pregunta por nuestras demás resinas e inciensos para sahumerio.",
+    "category": "otros",
+    "price": null,
+    "image": "/images/products/copal-blanco.svg"
+  }
+]

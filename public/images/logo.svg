@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C4763B"/>
+      <stop offset="1" stop-color="#E9C87E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sello botánico: doble anillo dorado -->
+  <circle cx="256" cy="256" r="234" fill="none" stroke="#D9A441" stroke-width="14"/>
+  <circle cx="256" cy="256" r="206" fill="none" stroke="#D9A441" stroke-width="4" opacity="0.55"/>
+
+  <!-- Hoja de verde profundo -->
+  <path d="M256,404 C168,338 168,224 256,132 C344,224 344,338 256,404 Z" fill="#2A4A34"/>
+
+  <!-- Venas doradas -->
+  <path d="M256,392 L256,160" stroke="#D9A441" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <g stroke="#D9A441" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7">
+    <path d="M256,330 C238,318 226,300 220,282"/>
+    <path d="M256,330 C274,318 286,300 292,282"/>
+    <path d="M256,270 C240,260 230,244 226,228"/>
+    <path d="M256,270 C272,260 282,244 286,228"/>
+    <path d="M256,212 C244,204 237,192 235,180"/>
+    <path d="M256,212 C268,204 275,192 277,180"/>
+  </g>
+
+  <!-- Llama que nace de la punta de la hoja -->
+  <path d="M256,74 C271,96 278,112 278,128 C278,149 268,161 256,161 C244,161 234,149 234,128 C234,112 241,96 256,74 Z" fill="url(#flame)"/>
+  <path d="M256,116 C262,126 265,133 265,140 C265,150 261,156 256,156 C251,156 247,150 247,140 C247,133 250,126 256,116 Z" fill="#F6DFA6"/>
+
+  <!-- Tallo -->
+  <path d="M256,404 L256,438" stroke="#2A4A34" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Destellos del sello -->
+  <path d="M170,102 L175,115 L188,120 L175,125 L170,138 L165,125 L152,120 L165,115 Z" fill="#D9A441"/>
+  <path d="M342,102 L347,115 L360,120 L347,125 L342,138 L337,125 L324,120 L337,115 Z" fill="#D9A441"/>
+</svg>

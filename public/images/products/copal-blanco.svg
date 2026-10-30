@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFE6D4"/>
+      <stop offset="1" stop-color="#DCCDAF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo tierra / crema oscura -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="400" cy="400" r="280" fill="#FFFFFF" opacity="0.35"/>
+
+  <!-- Humo del sahumerio -->
+  <path d="M400,452 C378,414 424,384 402,344 C386,314 420,282 406,246" stroke="#A6905F" stroke-width="11" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M356,460 C342,430 372,408 356,378 C344,356 368,332 358,306" stroke="#A6905F" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.45"/>
+  <path d="M446,462 C460,434 432,412 446,384 C458,364 434,342 444,318" stroke="#A6905F" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Plato de sahumerio -->
+  <ellipse cx="400" cy="606" rx="132" ry="20" fill="#E5D9BE" stroke="#8B7350" stroke-width="7"/>
+
+  <!-- Montón de copal en grano (fila alta) -->
+  <g stroke="#8B7350" stroke-width="7" stroke-linejoin="round">
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(376,498) rotate(18) scale(1.05)" fill="#D3C29B"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(424,494) rotate(-16)" fill="#C9B58C"/>
+  </g>
+
+  <!-- Fila media -->
+  <g stroke="#8B7350" stroke-width="7" stroke-linejoin="round">
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(352,542) rotate(-12) scale(1.1)" fill="#C9B58C"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(400,548) rotate(24) scale(1.2)" fill="#B39A6C"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(448,540) rotate(-30) scale(1.05)" fill="#D3C29B"/>
+  </g>
+
+  <!-- Fila baja (al frente) -->
+  <g stroke="#8B7350" stroke-width="7" stroke-linejoin="round">
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(330,582) rotate(16) scale(1.15)" fill="#B39A6C"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(378,588) rotate(-22) scale(1.25)" fill="#C9B58C"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(426,586) rotate(34)" fill="#D3C29B"/>
+    <path d="M0,-24 L17,-13 L13,10 L-7,21 L-19,4 Z" transform="translate(472,578) rotate(-8) scale(1.1)" fill="#B39A6C"/>
+  </g>
+
+  <!-- Destellos -->
+  <path d="M272,290 L279,303 L292,309 L279,315 L272,328 L265,315 L252,309 L265,303 Z" fill="#C9932F" opacity="0.5"/>
+  <path d="M532,312 L537,321 L547,327 L537,332 L532,342 L527,332 L517,327 L527,321 Z" fill="#C9932F" opacity="0.4"/>
+
+  <!-- Sombra del plato -->
+  <ellipse cx="400" cy="642" rx="140" ry="15" fill="#6B5638" opacity="0.18"/>
+</svg>

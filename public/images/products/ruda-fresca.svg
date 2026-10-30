@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E9EDD4"/>
+      <stop offset="1" stop-color="#CBD5A4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo verde oliva -->
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="400" cy="400" r="280" fill="#FFFFFF" opacity="0.35"/>
+
+  <!-- Hojas sueltas flotando -->
+  <path d="M0,0 C24,-42 24,-112 0,-154 C-24,-112 -24,-42 0,0 Z" transform="translate(252,318) rotate(-36)" fill="#6C7C3F" opacity="0.5"/>
+  <path d="M0,0 C24,-42 24,-112 0,-154 C-24,-112 -24,-42 0,0 Z" transform="translate(552,338) rotate(32)" fill="#6C7C3F" opacity="0.45"/>
+
+  <!-- Atado de ruda: capa trasera (hojas oscuras) -->
+  <g fill="#55632C">
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(-64)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(-32)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(32)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(64)"/>
+  </g>
+
+  <!-- Capa frontal (hojas medias) -->
+  <g fill="#6C7C3F">
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(-48)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(-16)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(16)"/>
+    <path d="M0,0 C26,-46 26,-122 0,-168 C-26,-122 -26,-46 0,0 Z" transform="translate(400,584) rotate(48)"/>
+  </g>
+
+  <!-- Hoja central (más clara y larga) -->
+  <path d="M0,0 C28,-50 28,-134 0,-186 C-28,-134 -28,-50 0,0 Z" transform="translate(400,584)" fill="#7E8F4B"/>
+  <path d="M400,578 L400,428" stroke="#55632C" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Atadura de yute -->
+  <rect x="352" y="568" width="96" height="30" rx="10" fill="#8B6F47"/>
+  <circle cx="400" cy="598" r="12" fill="#8B6F47"/>
+  <path d="M392,604 C380,624 372,638 360,650" stroke="#8B6F47" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M408,604 C420,624 428,638 440,650" stroke="#8B6F47" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Tallos bajo la atadura -->
+  <path d="M384,610 C382,632 378,648 372,662" stroke="#9AA16B" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M400,612 C400,634 400,650 400,666" stroke="#9AA16B" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M416,610 C418,632 422,648 428,662" stroke="#9AA16B" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Sombra en el piso -->
+  <ellipse cx="400" cy="682" rx="140" ry="15" fill="#55632C" opacity="0.18"/>
+</svg>
