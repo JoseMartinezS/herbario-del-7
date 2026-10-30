@@ -1,0 +1,80 @@
+# CI de Herbario Del 7
+#
+# Corre en cada push a main y en cada PR hacia main.
+# El build de producción NO se corre localmente: este workflow es el
+# único lugar donde se ejecuta `next build` (SSG, OG image y
+# generateStaticParams), empaquetado dentro de `npm run test:e2e:prod`.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node 22 + cache de dependencias (requiere package-lock.json,
+      # que está versionado en el repo).
+      - name: Configurar Node 22 con cache de npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Instalación reproducible: exactamente lo del lockfile.
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Chromium para Playwright + librerías de sistema que necesita.
+      # Se instala ANTES de lint/tipos/tests para fallar temprano si el
+      # runner tiene problemas, y no después de 10 minutos de suite.
+      - name: Instalar Chromium para Playwright
+        run: npx playwright install chromium --with-deps
+
+      # Orden: lo barato y rápido primero (lint y tipos fallan en
+      # segundos), después los tests unitarios (~segundos) y al final
+      # lo caro (build de producción + E2E). Así el feedback de errores
+      # triviales no espera al build.
+      - name: Lint
+        run: npm run lint
+
+      - name: Verificación de tipos
+        run: npx tsc --noEmit
+
+      - name: Tests unitarios (Vitest)
+        run: npm test
+
+      # LA verificación clave del workflow: `test:e2e:prod` hace
+      # `npm run build` (primer build real del proyecto: SSG + OG image
+      # + generateStaticParams) y después corre los E2E con Playwright
+      # contra el build servido con `next start` en el puerto 3100
+      # (puerto no estándar para no chocar con nada en el runner).
+      # --retries=1: en CI conviene reintentar una vez (flakes) y, como
+      # el config usa trace: "on-first-retry", es lo que genera los
+      # traces que subimos como artefacto si algo falla.
+      - name: Build de producción + E2E (Playwright)
+        id: e2e
+        run: npm run test:e2e:prod -- --retries=1
+
+      # Artefacto para debuggear desde la web de GitHub: reporte de
+      # Playwright y traces de los tests reintentados. Sólo si el paso
+      # de E2E corrió y falló (si falló el lint, no hay nada que subir).
+      # El config prod usa reporter "list", así que playwright-report/
+      # puede no existir; los traces quedan en test-results/ (outputDir).
+      # if-no-files-found: warn para no enrojar el paso si no hay nada.
+      - name: Subir reporte de Playwright
+        if: failure() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
