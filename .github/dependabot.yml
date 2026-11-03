@@ -1,0 +1,23 @@
+# Dependabot: actualizaciones automáticas de dependencias.
+#
+# Dos ecosistemas, ambos con revisión semanal:
+# - npm: dependencias de package.json (runtime y toolchain de desarrollo).
+# - github-actions: acciones usadas en .github/workflows/ci.yml.
+#
+# El prefijo "chore:" mantiene los commits de Dependabot dentro del
+# formato conventional commits del repositorio.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore:"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore:"
