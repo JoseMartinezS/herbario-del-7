@@ -11,6 +11,7 @@ import {
   getProductsByCategory,
 } from "@/lib/products";
 import ProductCard, { CATEGORY_STYLES } from "@/components/ProductCard";
+import ProductJsonLd from "@/components/ProductJsonLd";
 import SectionHeading from "@/components/SectionHeading";
 import {
   IconArrowLeft,
@@ -82,6 +83,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
+      {/* Datos estructurados de la ficha: Product + BreadcrumbList. */}
+      <ProductJsonLd product={product} />
+
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20">
         {/* Miga de pan: Catálogo › Categoría › Producto */}
         <nav aria-label="Ruta de navegación">
