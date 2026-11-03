@@ -51,7 +51,7 @@ Antes de entregar cambios, corre `npx tsc --noEmit` y `npm run lint`: deben sali
 
 | Comando | Qué cubre |
 | --- | --- |
-| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod. |
+| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod y generadores JSON-LD de la ficha de producto. |
 | `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos) y accesibilidad con axe (WCAG 2.0 A/AA). |
 | `npm run test:e2e:prod` | La misma suite E2E **contra el build de producción**: el script hace `npm run build` y después sirve con `npm run start`. Lo corre el dueño o CI al publicar; no hace falta en el día a día. |
 
@@ -131,6 +131,7 @@ Nota técnica: el validador del catálogo (`lib/schema.ts`) hoy solo acepta imá
 
 - **Metadatos por página** (`title` + `description` en español, títulos únicos; el layout define la plantilla `… | Herbario Del 7` y el `metadataBase`).
 - **JSON-LD** (`components/JsonLd.tsx`, montado en `app/layout.tsx`): schema.org `Store` con nombre, teléfono, correo, dirección, horarios por turno y redes. Sale de `content/business.ts`.
+- **JSON-LD por ficha de producto** (`components/ProductJsonLd.tsx`, montado en `app/catalogo/[slug]/page.tsx`): schema.org `Product` (con `offers` en MXN solo si el producto tiene precio) y `BreadcrumbList` (Inicio › Catálogo › Producto). Los generadores son funciones puras en `lib/product-schema.ts`, testeadas con Vitest.
 - **Sitemap** (`app/sitemap.ts` → `/sitemap.xml`): incluye las 8 rutas fijas y las fichas de los 10 productos. `/admin` queda fuera.
 - **robots** (`app/robots.ts` → `/robots.txt`): permite todo salvo `/admin`.
 - **Open Graph** (`app/opengraph-image.tsx`): imagen 1200×630 con la identidad del sitio; Next la aplica a todas las páginas.
@@ -147,6 +148,18 @@ Nota técnica: el validador del catálogo (`lib/schema.ts`) hoy solo acepta imá
 ### Verificación de negocio de Meta
 
 Los datos registrados en el **Business Manager de Meta deben coincidir EXACTAMENTE** con los publicados en el sitio: nombre legal, dirección completa, teléfono y correo. Antes de solicitar la verificación, revisa `content/business.ts` (la fuente de verdad) y corrige ahí cualquier cambio — el sitio entero se actualiza solo.
+
+## Google Search Console (guía rápida)
+
+Google Search Console es la herramienta gratuita de Google para saber cómo te encuentra la gente. Dar de alta el sitio toma unos 10 minutos y **solo se hace una vez**. Necesitas la cuenta de Google del negocio y acceso al dashboard de Cloudflare (donde vive el DNS del dominio).
+
+1. **Da de alta la propiedad.** Entra a [search.google.com/search-console](https://search.google.com/search-console), inicia sesión y pulsa **"Añadir propiedad"**. Elige el tipo **Dominio** y escribe `herbariodel7.com`. Google te mostrará un registro TXT (algo como `google-site-verification=...`): cópialo tal cual.
+2. **Publica el registro en Cloudflare.** Entra al [dashboard de Cloudflare](https://dash.cloudflare.com), abre el dominio `herbariodel7.com` y ve a **DNS → "Add record"**: tipo **TXT**, nombre `@` y valor el registro que copiaste. Guarda y espera un par de minutos a que se propague.
+3. **Verifica.** Vuelve a Search Console y pulsa **"Verificar"**: con el TXT publicado, la propiedad se valida al instante.
+4. **Envía el sitemap.** En el menú lateral abre **"Sitemaps"**, pega `https://herbariodel7.com/sitemap.xml` y envíalo. Eso le dice a Google todas las páginas que puede indexar (el sitio ya lo genera solo).
+5. **Pide la indexación del inicio.** En la barra de **"Inspección de URL"** (arriba) pega `https://herbariodel7.com` y pulsa **"Solicitar indexación"**.
+
+> **Nota:** la indexación tarda días — a veces semanas — en reflejarse; no te preocupes si al principio el sitio no aparece en Google. Tener el **Google Business Profile** del negocio verificado también ayuda: Google cruza esos datos y favorece el descubrimiento local en Frontera y alrededores.
 
 ## Panel de administración (futuro, no implementado)
 
