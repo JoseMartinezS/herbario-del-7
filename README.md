@@ -26,11 +26,15 @@ npm run dev
 
 El sitio queda en `http://localhost:3000`.
 
-### Variable de entorno
+### Variables de entorno
 
 | Variable | Descripción |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | URL pública del sitio, **sin slash final** (p. ej. `https://herbariodel7.com`). Alimenta el `metadataBase`, el JSON-LD, el sitemap, el robots y las URLs canónicas. Actualízala al conectar el dominio real. |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Opcional.** URL del proyecto de Supabase. Sin esta variable (y la de abajo) el catálogo se lee de `content/products.json`, el modo original. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Opcional.** Publishable/anon key de Supabase (la pública, jamás la `service_role`). Con las dos variables presentes, el catálogo se lee de Supabase con fallback al JSON local. |
+
+Las dos variables de Supabase están documentadas (y vacías, como plantilla) en `.env.example`; la guía para activarlas está en [`supabase/README.md`](supabase/README.md) y en la sección de abajo.
 
 ## Scripts
 
@@ -51,7 +55,7 @@ Antes de entregar cambios, corre `npx tsc --noEmit` y `npm run lint`: deben sali
 
 | Comando | Qué cubre |
 | --- | --- |
-| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod y generadores JSON-LD de la ficha de producto. |
+| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod, generadores JSON-LD de la ficha de producto y la capa de catálogo dual (mapeo de filas de Supabase, filtrado por status y fallback al JSON local). |
 | `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos) y accesibilidad con axe (WCAG 2.0 A/AA). |
 | `npm run test:e2e:prod` | La misma suite E2E **contra el build de producción**: el script hace `npm run build` y después sirve con `npm run start`. Lo corre el dueño o CI al publicar; no hace falta en el día a día. |
 
@@ -86,8 +90,9 @@ app/                    Rutas (App Router)
 components/             Componentes de UI (Header, Footer, ProductCard, LegalPage, JsonLd, íconos…)
 content/                Contenido editable del negocio y del catálogo
   business.ts           Fuente única de verdad del NAP y horarios
-  products.json         Catálogo de productos
-lib/                    Lógica: acceso al catálogo, esquema zod, tipos, URL del sitio
+  products.json         Catálogo de productos (snapshot semilla/respaldo)
+lib/                    Lógica: acceso al catálogo (JSON/Supabase), esquema zod, tipos, URL del sitio
+supabase/               Migración del catálogo a Supabase (SQL + guía de activación)
 tests/
   setup.ts              Setup global de Vitest (jest-dom)
   e2e/                  Specs E2E de Playwright (excluidos de Vitest)
@@ -113,6 +118,8 @@ Cada producto tiene estos campos:
 
 > **Ojo con los precios:** hoy todo el catálogo se publica con `null` ("consulta el precio por WhatsApp") porque los precios se confirman al momento del pedido. La página de términos deja claro que los precios del sitio son referenciales. Carga el número cuando el dueño lo confirme.
 
+> **¿Edits al JSON o a Supabase?** Si el sitio está en modo JSON local (sin las env vars de Supabase), editá este archivo y deployá. Si ya está activo Supabase, los productos se editan en la tabla del dashboard y este JSON queda como respaldo — ver la sección [«Catálogo: JSON local vs Supabase»](#catálogo-json-local-vs-supabase-doble-modo).
+
 ### Datos del negocio → `content/business.ts`
 
 Es la **única fuente de verdad** del NAP (nombre, dirección, teléfono) y de los horarios. Header, Footer, páginas de contacto/ubicación, metadatos y el JSON-LD leen de aquí: **cambia el dato una vez y se actualiza en todo el sitio**. Nunca dupliques estos valores en otro archivo.
@@ -128,6 +135,59 @@ Para reponer o mejorar una foto:
 3. Actualiza el campo `image` del producto en `content/products.json` con la nueva extensión.
 
 Nota técnica: el validador del catálogo (`lib/schema.ts`) acepta imágenes `.svg`, `.jpg`, `.jpeg` y `.webp` dentro de `/images/products/`, en minúsculas y nombradas igual que el slug.
+
+## Catálogo: JSON local vs Supabase (doble modo)
+
+Desde la fase 2.1 el sitio puede leer el catálogo de **dos fuentes**, decidido
+solo por variables de entorno. `content/products.json` dejó de ser la única
+fuente, pero **sigue en el repo como snapshot semilla y respaldo** — no lo
+borres aunque Supabase esté activo.
+
+| Modo | Cuándo | Fuente |
+| --- | --- | --- |
+| **JSON local** (original) | Sin las env vars de Supabase | `content/products.json`, validado con zod |
+| **Supabase con fallback** | Con `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Tabla `products` de Supabase (`lib/supabase-catalog.ts`) |
+
+La regla de oro del diseño: **el sitio nunca se cae por culpa de Supabase**.
+Toda lectura remota va envuelta en try/catch con timeout: si el fetch falla,
+responde con error o devuelve un catálogo vacío/malformado, el sitio cae
+automáticamente al JSON local y deja un `console.warn` en los logs de Vercel
+para diagnosticarlo. Las filas retiradas (`status = 'retired'`) o malformadas
+no se sirven al público, y tampoco tumban el resto del catálogo.
+
+Detalles técnicos del modo Supabase:
+
+- **Lectura server-side únicamente** (RSC, `generateStaticParams`, sitemap):
+  nada de Supabase llega al bundle del cliente. Se usa **fetch directo a la
+  REST API** (`/rest/v1/products?...`) en vez del SDK oficial: para una
+  lectura pública de una tabla, PostgREST resuelve columnas, filtro y orden
+  por URL, y el SDK no aporta nada que se use (a cambio de una dependencia
+  más y un bundle más pesado).
+- **ISR**: home, `/catalogo` y las fichas declaran `revalidate = 3600`
+  (regeneración horaria). `generateStaticParams` sigue pre-renderizando las
+  15 fichas en el build **en ambos modos** — el fallback al JSON garantiza
+  las semillas aunque el build corra sin env vars (como en CI).
+- **Orden del catálogo**: la tabla tiene una columna `position` que conserva
+  el orden curado del JSON (1 = primero); el sitio pide las filas ordenadas
+  por ella.
+- El JSON-LD de cada ficha acepta `image` absoluta (bucket de Storage) o
+  ruta local; `next.config.ts` declara el host de Storage como patrón de
+  imagen remota **solo cuando la env var está presente**.
+
+### Activar Supabase (en este orden)
+
+1. **Correr la migración**: `supabase/migration.sql` en el SQL Editor del
+   dashboard (crea tabla, permisos, bucket y las 15 filas). Guía completa en
+   [`supabase/README.md`](supabase/README.md).
+2. **Subir las 15 imágenes** al bucket `products` de Storage (mismos
+   nombres de archivo que hoy: ver lista en `supabase/README.md`).
+3. **Configurar las env vars** `NEXT_PUBLIC_SUPABASE_URL` y
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` en Vercel (Settings → Environment
+   Variables; los valores salen de Project Settings → API).
+4. **Redeployar** en Vercel.
+
+Desactivarlo es al revés y más simple: quitar (o vaciar) las dos variables y
+redeployar — el sitio vuelve al JSON local tal como estaba.
 
 ## SEO: qué hay y dónde
 
