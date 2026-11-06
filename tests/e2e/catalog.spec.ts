@@ -7,40 +7,40 @@ import { expect, test } from "@playwright/test";
  */
 const TARJETA_PRODUCTO = 'a[href^="/catalogo/"]';
 
-const PRODUCTO = "Veladora Blanca de 7 Días";
+const PRODUCTO = "Veladoras Preparadas";
 
 test.describe("Catálogo", () => {
-  test("sin filtro muestra las 10 tarjetas y el contador total", async ({
+  test("sin filtro muestra las 15 tarjetas y el contador total", async ({
     page,
   }) => {
     await page.goto("/catalogo");
-    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(10);
-    await expect(page.getByText("10 productos", { exact: true })).toBeVisible();
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
+    await expect(page.getByText("15 productos", { exact: true })).toBeVisible();
   });
 
-  test("el chip Veladoras filtra a 2 tarjetas y actualiza el contador", async ({
+  test("el chip Veladoras filtra a 3 tarjetas y actualiza el contador", async ({
     page,
   }) => {
     await page.goto("/catalogo");
-    // El nombre accesible del chip es "Veladoras 2" (etiqueta + conteo).
+    // El nombre accesible del chip es "Veladoras 3" (etiqueta + conteo).
     await page.getByRole("link", { name: /^Veladoras/ }).click();
 
     await expect(page).toHaveURL(/\/catalogo\?categoria=veladoras$/);
-    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(2);
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(3);
     await expect(
-      page.getByText("2 productos en Veladoras", { exact: true }),
+      page.getByText("3 productos en Veladoras", { exact: true }),
     ).toBeVisible();
   });
 
-  test("el chip Todas devuelve a las 10 tarjetas", async ({ page }) => {
+  test("el chip Todas devuelve a las 15 tarjetas", async ({ page }) => {
     await page.goto("/catalogo?categoria=veladoras");
-    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(2);
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(3);
 
     await page.getByRole("link", { name: /^Todas/ }).click();
 
     await expect(page).toHaveURL(/\/catalogo$/);
-    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(10);
-    await expect(page.getByText("10 productos", { exact: true })).toBeVisible();
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
+    await expect(page.getByText("15 productos", { exact: true })).toBeVisible();
   });
 
   test(`la ficha de "${PRODUCTO}" tiene breadcrumb, CTA de WhatsApp y relacionados`, async ({
@@ -51,7 +51,7 @@ test.describe("Catálogo", () => {
       .getByRole("link", { name: `Ver detalles de ${PRODUCTO}` })
       .click();
 
-    await expect(page).toHaveURL("/catalogo/veladora-blanca-7-dias");
+    await expect(page).toHaveURL("/catalogo/veladoras-preparadas");
     await expect(
       page.getByRole("heading", { level: 1, name: PRODUCTO }),
     ).toBeVisible();
@@ -76,10 +76,10 @@ test.describe("Catálogo", () => {
     await expect(cta).toHaveAttribute("href", hrefEsperado);
     await expect(cta).toBeVisible();
 
-    // Sección de relacionados (la veladora comparte familia con la roja).
+    // Sección de relacionados (comparte familia con las otras dos veladoras).
     await expect(
       page.getByRole("heading", { name: "Más de Veladoras" }),
     ).toBeVisible();
-    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(1);
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(2);
   });
 });

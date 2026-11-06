@@ -10,16 +10,16 @@ import type { Product } from "./types";
  */
 
 /** Producto REAL del catálogo (copiado de content/products.json). */
-const veladoraBlanca = {
-  slug: "veladora-blanca-7-dias",
-  name: "Veladora Blanca de 7 Días",
+const veladorasPreparadas = {
+  slug: "veladoras-preparadas",
+  name: "Veladoras Preparadas",
   shortDescription:
-    "Vela blanca de larga duración para limpias, protección y devoción.",
+    "Veladoras ya preparadas con hierbas y esencias para una intención específica.",
   description:
-    "La veladora blanca es la más versátil del herbolario: en la tradición mexicana se enciende tradicionalmente para limpias, protección y agradecimiento, y para acompañar peticiones de paz y armonía en el hogar.\n\nSu cera de combustión lenta está pensada para acompañarte durante los siete días de una petición o novena. Pregúntanos por la oración o el acompañamiento adecuado para tu intención.",
+    "Las veladoras preparadas llegan listas para encenderse: vienen cargadas con hierbas, esencias y oración según la intención —protección, amor, dinero, limpia— para que no tengas que vestirla tú. Preparar la veladora es una de las costumbres más antiguas del herbolario mexicano, y aquí se sigue haciendo a mano.\n\nCada preparación se arma en la casa con su hierba y su oración. Pregunta por WhatsApp qué veladoras preparadas hay disponibles hoy, o cuéntanos qué necesitas y te decimos cuál te sirve.",
   category: "veladoras",
   price: null,
-  image: "/images/products/veladora-blanca-7-dias.svg",
+  image: "/images/products/veladoras-preparadas.jpg",
   featured: true,
 } satisfies Product;
 
@@ -35,33 +35,33 @@ function expectRejected(input: unknown, field: string): void {
 
 describe("productSchema", () => {
   it("debería aceptar un producto real del catálogo", () => {
-    const result = productSchema.parse(veladoraBlanca);
-    expect(result).toEqual(veladoraBlanca);
+    const result = productSchema.parse(veladorasPreparadas);
+    expect(result).toEqual(veladorasPreparadas);
   });
 
   it("debería rechazar una categoría inexistente", () => {
-    expectRejected({ ...veladoraBlanca, category: "tes" }, "category");
+    expectRejected({ ...veladorasPreparadas, category: "tes" }, "category");
   });
 
   it("debería rechazar un slug mal formado (espacios y mayúsculas)", () => {
-    expectRejected({ ...veladoraBlanca, slug: "Veladora Blanca" }, "slug");
+    expectRejected({ ...veladorasPreparadas, slug: "Veladora Blanca" }, "slug");
   });
 
   it("debería aceptar price null (consulta por WhatsApp) y enteros >= 0", () => {
-    expect(productSchema.parse(veladoraBlanca).price).toBeNull();
-    expect(productSchema.parse({ ...veladoraBlanca, price: 45 }).price).toBe(45);
-    expect(productSchema.parse({ ...veladoraBlanca, price: 0 }).price).toBe(0);
+    expect(productSchema.parse(veladorasPreparadas).price).toBeNull();
+    expect(productSchema.parse({ ...veladorasPreparadas, price: 45 }).price).toBe(45);
+    expect(productSchema.parse({ ...veladorasPreparadas, price: 0 }).price).toBe(0);
   });
 
   it("debería rechazar un price negativo o con decimales", () => {
-    expectRejected({ ...veladoraBlanca, price: -1 }, "price");
-    expectRejected({ ...veladoraBlanca, price: 45.5 }, "price");
+    expectRejected({ ...veladorasPreparadas, price: -1 }, "price");
+    expectRejected({ ...veladorasPreparadas, price: 45.5 }, "price");
   });
 
   it("debería rechazar una descripción de un solo párrafo (sin \\n\\n)", () => {
     expectRejected(
       {
-        ...veladoraBlanca,
+        ...veladorasPreparadas,
         description:
           "Un solo párrafo largo que no trae el salto de línea doble que el sitio usa para separar los dos párrafos de la ficha del producto.",
       },
@@ -71,28 +71,28 @@ describe("productSchema", () => {
 
   it("debería aceptar imágenes .jpg, .jpeg, .webp y .svg dentro de /images/products/", () => {
     for (const imagen of [
-      "/images/products/veladora-blanca-7-dias.jpg",
-      "/images/products/veladora-blanca-7-dias.jpeg",
-      "/images/products/veladora-blanca-7-dias.webp",
-      "/images/products/veladora-blanca-7-dias.svg",
+      "/images/products/veladoras-preparadas.jpg",
+      "/images/products/veladoras-preparadas.jpeg",
+      "/images/products/veladoras-preparadas.webp",
+      "/images/products/veladoras-preparadas.svg",
     ]) {
       expect(
-        productSchema.parse({ ...veladoraBlanca, image: imagen }).image,
+        productSchema.parse({ ...veladorasPreparadas, image: imagen }).image,
       ).toBe(imagen);
     }
   });
 
   it("debería rechazar una imagen fuera de /images/products/ o con extensión no soportada", () => {
     expectRejected(
-      { ...veladoraBlanca, image: "images/products/veladora-blanca-7-dias.svg" },
+      { ...veladorasPreparadas, image: "images/products/veladoras-preparadas.svg" },
       "image",
     );
     expectRejected(
-      { ...veladoraBlanca, image: "/images/products/veladora-blanca.png" },
+      { ...veladorasPreparadas, image: "/images/products/veladora-blanca.png" },
       "image",
     );
     expectRejected(
-      { ...veladoraBlanca, image: "/images/products/veladora-blanca-7-dias.JPG" },
+      { ...veladorasPreparadas, image: "/images/products/veladoras-preparadas.JPG" },
       "image",
     );
   });

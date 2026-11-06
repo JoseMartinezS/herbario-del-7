@@ -13,7 +13,7 @@ export const CATEGORIES = [
   "lociones",
   "capsulas-y-suplementos",
   "cuidado-personal",
-  "otros",
+  "sahumerios-e-inciensos",
 ] as const;
 
 /** Unión de slugs de categoría válidos. */
@@ -52,23 +52,25 @@ export const CATEGORY_INFO: Record<
     description:
       "Jabones, shampoos y productos naturales para piel y cabello.",
   },
-  otros: {
-    name: "Otros",
+  "sahumerios-e-inciensos": {
+    name: "Sahumerios e Inciensos",
     description:
-      "Copal, inciensos y otros artículos para tus rituales y tradiciones.",
+      "Copal, resinas e inciensos para sahumar la casa y acompañar tus peticiones.",
   },
 };
 
 /**
- * Producto del catálogo.
+ * Producto del catálogo (una línea de producto del mostrador).
  *
  * - `description`: dos párrafos cortos separados por un salto de línea doble
  *   (`\n\n`), listos para renderizar con `whitespace-pre-line` o split.
- * - `image`: ruta pública del SVG ilustrativo (p. ej. `/images/products/copal-blanco.svg`).
+ * - `image`: ruta pública de la imagen del producto — foto real
+ *   (`.jpg`/`.jpeg`/`.webp`) o SVG de transición, p. ej.
+ *   `/images/products/veladoras-parafina.jpg`.
  * - `price`: precio en pesos mexicanos (MXN). `null` significa
  *   "Consulta el precio por WhatsApp".
- *   TODO: reemplazar con precios reales — los precios cargados en
- *   content/products.json son ejemplos editables.
+ *   TODO: cargar el número cuando el dueño confirme precios — hoy todo el
+ *   catálogo se publica con `null`.
  */
 export interface Product {
   slug: string;

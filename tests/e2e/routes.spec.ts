@@ -9,7 +9,7 @@ const RUTAS_PRINCIPALES: ReadonlyArray<{ ruta: string; h1: string }> = [
   { ruta: "/", h1: "Herbario Del 7" },
   { ruta: "/nosotros", h1: "Nosotros" },
   { ruta: "/catalogo", h1: "Catálogo del herbolario" },
-  { ruta: "/catalogo/veladora-blanca-7-dias", h1: "Veladora Blanca de 7 Días" },
+  { ruta: "/catalogo/veladoras-preparadas", h1: "Veladoras Preparadas" },
   { ruta: "/ubicacion", h1: "Ubicación y horarios" },
   { ruta: "/contacto", h1: "Contacto" },
   { ruta: "/privacidad", h1: "Política de privacidad" },
