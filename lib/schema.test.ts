@@ -69,13 +69,30 @@ describe("productSchema", () => {
     );
   });
 
-  it("debería rechazar una imagen fuera de /images/products/ o que no sea .svg", () => {
+  it("debería aceptar imágenes .jpg, .jpeg, .webp y .svg dentro de /images/products/", () => {
+    for (const imagen of [
+      "/images/products/veladora-blanca-7-dias.jpg",
+      "/images/products/veladora-blanca-7-dias.jpeg",
+      "/images/products/veladora-blanca-7-dias.webp",
+      "/images/products/veladora-blanca-7-dias.svg",
+    ]) {
+      expect(
+        productSchema.parse({ ...veladoraBlanca, image: imagen }).image,
+      ).toBe(imagen);
+    }
+  });
+
+  it("debería rechazar una imagen fuera de /images/products/ o con extensión no soportada", () => {
     expectRejected(
       { ...veladoraBlanca, image: "images/products/veladora-blanca-7-dias.svg" },
       "image",
     );
     expectRejected(
       { ...veladoraBlanca, image: "/images/products/veladora-blanca.png" },
+      "image",
+    );
+    expectRejected(
+      { ...veladoraBlanca, image: "/images/products/veladora-blanca-7-dias.JPG" },
       "image",
     );
   });
