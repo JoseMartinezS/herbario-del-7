@@ -18,7 +18,10 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   // Hoja de Tailwind v4 (mismo origen) + estilos inline de React.
   "style-src 'self' 'unsafe-inline'",
-  // SVGs propios de /public y OG image generada en el mismo origen.
+  // SVGs propios de /public y OG image generada en el mismo origen. En
+  // modo Supabase las imágenes del catálogo también pasan por el
+  // optimizador de next/image (/_next/image: mismo origen), así que no hay
+  // que abrir img-src a terceros.
   "img-src 'self' data:",
   // Fraunces e Inter se cargan con next/font → self-hosted en
   // /_next/static/media (mismo origen).
@@ -70,8 +73,36 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * Imágenes remotas del catálogo (modo Supabase).
+ *
+ * En modo Supabase, `product.image` es una URL absoluta del bucket público
+ * de Storage, y next/image REQUIERE que el host esté declarado aquí (si
+ * no, el render falla). El patrón se deriva de NEXT_PUBLIC_SUPABASE_URL
+ * al momento del build: sin la env var no se agrega nada y la config queda
+ * idéntica al modo JSON local (imágenes propias de /public). Se declara el
+ * host EXACTO del proyecto, no un wildcard: si cambiara el proyecto de
+ * Supabase, el build avisa en vez de aceptar cualquier host.
+ */
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+let supabaseImagePattern: { protocol: "http" | "https"; hostname: string } | null =
+  null;
+if (supabaseUrl) {
+  try {
+    const parsed = new URL(supabaseUrl);
+    supabaseImagePattern = {
+      protocol: parsed.protocol === "http:" ? "http" : "https",
+      hostname: parsed.hostname,
+    };
+  } catch {
+    // URL malformada: el modo remoto se ignora igual desde lib/products.ts
+    // (caída al JSON local); aquí no hay nada que declarar.
+  }
+}
+
 const nextConfig: NextConfig = {
   images: {
+    ...(supabaseImagePattern ? { remotePatterns: [supabaseImagePattern] } : {}),
     // El logotipo y las ilustraciones del catálogo son SVG propios servidos
     // desde /public (mismo origen), así que se permite su paso por el
     // optimizador de next/image. La CSP neutraliza cualquier script embebido.

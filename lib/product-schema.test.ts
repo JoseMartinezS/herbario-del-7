@@ -81,6 +81,29 @@ describe("buildProductSchema", () => {
     expect(schema.name).toBe(veladoraConPrecio.name);
     expect(schema["@type"]).toBe("Product");
   });
+
+  it("debería usar tal cual una image absoluta http (URL del bucket de Supabase)", () => {
+    // Dual-mode F2.1: en modo Supabase la imagen ya es una URL absoluta
+    // del bucket público de Storage; prefijarle SITE_URL la rompería.
+    const product = {
+      ...veladorasPreparadas,
+      image:
+        "https://mmvifyolydrohrfffqtl.supabase.co/storage/v1/object/public/products/veladoras-preparadas.jpg",
+    } satisfies Product;
+
+    const schema = buildProductSchema(product, SITE_URL);
+
+    expect(schema.image).toBe(product.image);
+    expect(schema.image.startsWith(SITE_URL)).toBe(false);
+  });
+
+  it("debería prefijar SITE_URL cuando image es una ruta relativa (modo JSON local)", () => {
+    const schema = buildProductSchema(veladorasPreparadas, SITE_URL);
+
+    expect(schema.image).toBe(
+      `${SITE_URL}${veladorasPreparadas.image}`,
+    );
+  });
 });
 
 describe("buildBreadcrumbSchema", () => {

@@ -12,7 +12,7 @@ import { SITE_URL } from "@/lib/site";
  * No se declara `lastModified` porque no llevamos registro de cambios por
  * página: publicar fechas inventadas sería engañar a los buscadores.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paginasFijas: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/nosotros`, changeFrequency: "yearly", priority: 0.5 },
@@ -24,7 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/cookies`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const fichasProductos: MetadataRoute.Sitemap = getProducts().map(
+  const fichasProductos: MetadataRoute.Sitemap = (await getProducts()).map(
     (product) => ({
       url: `${SITE_URL}/catalogo/${product.slug}`,
       changeFrequency: "monthly",
