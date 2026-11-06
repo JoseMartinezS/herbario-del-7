@@ -1,95 +1,140 @@
 [
   {
-    "slug": "veladora-blanca-7-dias",
-    "name": "Veladora Blanca de 7 Días",
-    "shortDescription": "Vela blanca de larga duración para limpias, protección y devoción.",
-    "description": "La veladora blanca es la más versátil del herbolario: en la tradición mexicana se enciende tradicionalmente para limpias, protección y agradecimiento, y para acompañar peticiones de paz y armonía en el hogar.\n\nSu cera de combustión lenta está pensada para acompañarte durante los siete días de una petición o novena. Pregúntanos por la oración o el acompañamiento adecuado para tu intención.",
+    "slug": "veladoras-parafina",
+    "name": "Veladoras de Parafina",
+    "shortDescription": "Veladoras de parafina de 7 días en varios colores para cada intención.",
+    "description": "Las veladoras de parafina son las de toda la vida: cera de combustión lenta, frasco de vidrio y mecha que acompaña los siete días de una novena. En la tradición mexicana cada color lleva su intención, y en el mostrador te ayudamos a elegir la indicada para tu petición.\n\nManejamos la línea en varios colores y tamaños, de la blanca clásica a las de intención específica. Consulta por WhatsApp el color y el tamaño que buscas y te decimos qué hay disponibles hoy.",
     "category": "veladoras",
     "price": null,
-    "image": "/images/products/veladora-blanca-7-dias.svg",
+    "image": "/images/products/veladoras-parafina.jpg"
+  },
+  {
+    "slug": "veladoras-coctel",
+    "name": "Veladoras de Coctel",
+    "shortDescription": "Veladoras de coctel, las chicas de vidrio, para altarcitos y peticiones cortas.",
+    "description": "Las veladoras de coctel son las hermanas chicas de la de 7 días: veladoras de vidrio en tamaño pequeño, ideales para altarcitos y santitos, para peticiones cortas o para encender una intención sin comprometer una vela grande. Chicas en tamaño, no en fe.\n\nManejamos la línea en varios colores y aromas. Consulta por WhatsApp qué veladoras de coctel hay disponibles hoy, o dinos tu intención y te orientamos con la indicada.",
+    "category": "veladoras",
+    "price": null,
+    "image": "/images/products/veladoras-coctel.jpg"
+  },
+  {
+    "slug": "veladoras-preparadas",
+    "name": "Veladoras Preparadas",
+    "shortDescription": "Veladoras ya preparadas con hierbas y esencias para una intención específica.",
+    "description": "Las veladoras preparadas llegan listas para encenderse: vienen cargadas con hierbas, esencias y oración según la intención —protección, amor, dinero, limpia— para que no tengas que vestirla tú. Preparar la veladora es una de las costumbres más antiguas del herbolario mexicano, y aquí se sigue haciendo a mano.\n\nCada preparación se arma en la casa con su hierba y su oración. Pregunta por WhatsApp qué veladoras preparadas hay disponibles hoy, o cuéntanos qué necesitas y te decimos cuál te sirve.",
+    "category": "veladoras",
+    "price": null,
+    "image": "/images/products/veladoras-preparadas.jpg",
     "featured": true
   },
   {
-    "slug": "veladora-roja-7-dias",
-    "name": "Veladora Roja de 7 Días",
-    "shortDescription": "Vela roja de 7 días para peticiones de amor, pasión y fuerza.",
-    "description": "En la tradición esotérica mexicana, el color rojo se asocia con el amor, la pasión y la vitalidad. Esta veladora se enciende tradicionalmente para peticiones de amor propio, para fortalecer las relaciones y para levantar el ánimo del hogar.\n\nSu cera de combustión lenta acompaña tus peticiones durante los siete días de la novena. Te podemos asesorar sobre cómo combinarla con hierbas u otras veladoras según tu intención.",
-    "category": "veladoras",
-    "price": 45,
-    "image": "/images/products/veladora-roja-7-dias.svg"
-  },
-  {
-    "slug": "ruda-fresca",
-    "name": "Ruda Fresca (Atado)",
-    "shortDescription": "Atado de ruda fresca para limpias personales y protección del hogar.",
-    "description": "La ruda es una de las plantas más reconocidas de la herbolaria mexicana: se emplea tradicionalmente en limpias personales y para proteger el hogar de energías densas. Su aroma intenso la hace ideal también para baños y sahumerios.\n\nTe entregamos atados de ruda fresca seleccionados en mostrador. Al ser un producto natural, la disponibilidad puede variar según la temporada: consulta por WhatsApp antes de visitarnos.",
+    "slug": "hierbas",
+    "name": "Hierbas",
+    "shortDescription": "Hierbas frescas y secas de la casa para tés, baños, limpias y preparados.",
+    "description": "El corazón del herbolario: ruda, romero, albahaca, manzanilla, tila y muchas más, frescas cuando hay temporada y secas el resto del año. La hierba es la base de casi todo lo que se hace aquí: tés de sobremesa, baños, limpias y preparaciones de la casa.\n\nLa disponibilidad cambia con la temporada y con lo que llega del mercado. Consulta por WhatsApp la hierba que buscas y te confirmamos qué hay fresco y qué hay seco.",
     "category": "hierbas-y-preparados",
     "price": null,
-    "image": "/images/products/ruda-fresca.svg",
-    "featured": true
+    "image": "/images/products/hierbas.svg"
   },
   {
-    "slug": "te-manzanilla-tila",
-    "name": "Té Relajante de Manzanilla y Tila",
-    "shortDescription": "Mezcla de manzanilla y tila para una infusión suave y aromática.",
-    "description": "La manzanilla y la tila son dos clásicos de la casa mexicana: esta mezcla se emplea tradicionalmente como infusión de sobremesa, perfecta para cerrar el día con un momento de calma.\n\nVierte agua caliente sobre la mezcla, tapa y deja reposar de cinco a siete minutos. Pregunta en mostrador por otras combinaciones de tés y hierbas de la casa.",
+    "slug": "tes-e-infusiones",
+    "name": "Tés e Infusiones de la Casa",
+    "shortDescription": "Mezclas de tés e infusiones armadas en la casa para cada momento del día.",
+    "description": "Los tés de la casa son mezclas armadas aquí mismo con hierbas de siempre: manzanilla con tila para calmar la noche, menta y poleo para la digestión, y combinaciones para el frío y para los nervios. La infusión es sobremesa, remedio y compañía en la casa mexicana.\n\nManejamos distintas mezclas armadas y hierbas sueltas para infusionar. Consulta por WhatsApp qué mezclas hay disponibles hoy o dinos qué traes en mente y te decimos con qué contamos.",
     "category": "hierbas-y-preparados",
-    "price": 60,
-    "image": "/images/products/te-manzanilla-tila.svg"
+    "price": null,
+    "image": "/images/products/tes-e-infusiones.jpg"
   },
   {
-    "slug": "agua-san-miguel",
-    "name": "Agua de Riego de San Miguel Arcángel",
-    "shortDescription": "Agua de riego de San Miguel Arcángel para protección y limpieza.",
-    "description": "El agua de riego de San Miguel Arcángel se emplea tradicionalmente para limpiar los espacios, cortar energías densas y pedir protección al arcángel. Se usa en baños de piso, para rociar la casa o en limpias personales.\n\nPreparada con hierbas aromáticas y esencias seleccionadas, llega lista para usarse. Escríbenos por WhatsApp y con gusto te orientamos sobre cómo aplicarla según tu necesidad.",
+    "slug": "aguas-espirituales",
+    "name": "Aguas Espirituales",
+    "shortDescription": "Aguas espirituales de distintos títulos para limpias, protección y devoción.",
+    "description": "Las aguas espirituales son preparaciones de hierbas y esencias dedicadas a un título —como el agua de San Miguel Arcángel o las de flores— que se usan para limpias personales, baños de piso y para rociar la casa cortando lo denso y pidiendo protección.\n\nManejamos varios títulos, cada uno con su intención y su oración. Consulta por WhatsApp el título específico que buscas y te confirmamos cuáles hay disponibles hoy.",
     "category": "aguas-y-riegos",
     "price": null,
-    "image": "/images/products/agua-san-miguel.svg",
+    "image": "/images/products/aguas-espirituales.jpg",
     "featured": true
   },
   {
-    "slug": "locion-ruda",
-    "name": "Loción de Ruda",
-    "shortDescription": "Loción de ruda para limpias personales, untes y protección.",
-    "description": "La loción de ruda concentra el aroma y las propiedades tradicionales de esta planta en una presentación práctica. Se emplea tradicionalmente para limpias personales, untes y para acompañar trabajos de protección.\n\nSe presenta en frasco con dosificador, lista para aplicar. En mostrador encontrarás también otras lociones y aguas de tocador elaboradas con hierbas.",
+    "slug": "banos-espirituales",
+    "name": "Baños Espirituales",
+    "shortDescription": "Baños espirituales preparados para despojar y atraer lo que se pide.",
+    "description": "El baño espiritual es una de las prácticas más arraigadas de la tradición mexicana: se prepara con hierbas, esencias y flores para despojarse de energías densas o para atraer amor, suerte y prosperidad. Aquí los armamos listos para vaciarse en la tina o en la cubeta.\n\nCada baño lleva su combinación de hierbas según su propósito. Pregunta por WhatsApp qué baños hay disponibles o dinos qué necesitas y te orientamos con el indicado.",
+    "category": "aguas-y-riegos",
+    "price": null,
+    "image": "/images/products/banos-espirituales.jpg"
+  },
+  {
+    "slug": "riegos-fuertes",
+    "name": "Riegos Fuertes",
+    "shortDescription": "Riegos fuertes para limpiar a fondo pisos y umbrales de trabajos densos.",
+    "description": "Los riegos fuertes son para cuando la casa necesita más que una limpia de rutina: preparaciones concentradas de hierbas y esencias que se riegan en pisos y umbrales para cortar trabajos densos, despejar el ambiente y dejar la casa en paz.\n\nSe aplican diluidos en agua, de adentro hacia afuera de la casa. Consulta por WhatsApp qué riegos hay disponibles y cómo te conviene aplicarlos según tu caso.",
+    "category": "aguas-y-riegos",
+    "price": null,
+    "image": "/images/products/riegos-fuertes.jpg"
+  },
+  {
+    "slug": "lociones-wiskeras",
+    "name": "Lociones Wiskeras",
+    "shortDescription": "Línea de lociones wiskeras para limpias, untes y trabajos de protección.",
+    "description": "Las lociones wiskeras son un clásico del mostrador: lociones de hierbas y esencias que se usan para limpias personales, untes en el cuerpo y para acompañar trabajos de protección, atracción o despojo según la loción que se elija.\n\nManejamos la línea completa, cada loción con su intención. Consulta por WhatsApp qué lociones wiskeras hay disponibles hoy.",
     "category": "lociones",
     "price": null,
-    "image": "/images/products/locion-ruda.svg"
+    "image": "/images/products/lociones-wiskeras.jpg"
   },
   {
-    "slug": "capsulas-ajo",
-    "name": "Cápsulas de Ajo Deshidratado",
-    "shortDescription": "Cápsulas de ajo deshidratado, complemento tradicional de uso diario.",
-    "description": "El ajo es uno de los ingredientes con más historia en la cocina y la tradición mexicana. En cápsulas de ajo deshidratado es una forma práctica y sin olor de incorporarlo a la rutina diaria como complemento alimenticio.\n\nConsulta la presentación y la disponibilidad por WhatsApp o en mostrador. Podemos orientarte sobre otros suplementos naturistas de la casa.",
+    "slug": "capsulas-y-productos-naturales",
+    "name": "Cápsulas y Productos Naturales",
+    "shortDescription": "Cápsulas, suplementos y productos naturistas para el cuidado diario.",
+    "description": "Cápsulas de ajo, de hierbas y otros complementos naturistas de uso diario: la forma práctica de seguir las costumbres de la casa sin preparar nada. El ajo deshidratado en cápsulas, por ejemplo, es de lo más pedido por quienes lo toman como complemento de siempre.\n\nManejamos distintas presentaciones y líneas naturistas. Consulta por WhatsApp el producto o la presentación que buscas y te confirmamos qué hay en mostrador.",
     "category": "capsulas-y-suplementos",
     "price": null,
-    "image": "/images/products/capsulas-ajo.svg"
+    "image": "/images/products/capsulas-y-productos-naturales.jpg"
   },
   {
-    "slug": "shampoo-sabila-romero",
-    "name": "Shampoo de Sábila y Romero",
-    "shortDescription": "Shampoo de sábila y romero para el lavado diario del cabello.",
-    "description": "La sábila y el romero son dos plantas clásicas del cuidado capilar tradicional. Este shampoo combina sus extractos en una fórmula pensada para el lavado diario, con frescura herbal y aroma suave.\n\nApto para uso frecuente. Pregunta también por los demás productos de cuidado personal elaborados con hierbas que tenemos en mostrador.",
+    "slug": "jabones-y-cremas",
+    "name": "Jabones y Cremas",
+    "shortDescription": "Jabones artesanales, cremas y más productos de tocador elaborados con hierbas.",
+    "description": "Jabones artesanales de miel, avena y hierbas, cremas para la piel y más productos de tocador hechos o seleccionados con el mismo criterio de siempre: ingredientes naturales y elaboración en pequeñas tandas, como se ha hecho toda la vida.\n\nLa selección del mostrador va cambiando según lo que llega. Pregunta por WhatsApp qué jabones y cremas hay hoy, o dinos qué necesitas para tu piel y te orientamos.",
     "category": "cuidado-personal",
     "price": null,
-    "image": "/images/products/shampoo-sabila-romero.svg"
+    "image": "/images/products/jabones-y-cremas.jpg"
   },
   {
-    "slug": "jabon-miel-avena",
-    "name": "Jabón de Miel y Avena",
-    "shortDescription": "Jabón artesanal de miel y avena, de espuma suave y aroma cálido.",
-    "description": "La miel y la avena son ingredientes clásicos del jabón artesanal mexicano. Este jabón se elabora en pequeñas tandas, con espuma suave y un aroma cálido que deja una sensación agradable en la piel.\n\nIdeal para el baño diario de toda la familia. En mostrador encontrarás otros jabones herbales y artesanales de la casa.",
+    "slug": "shampoos-y-acondicionadores",
+    "name": "Shampoos y Acondicionadores",
+    "shortDescription": "Shampoos y acondicionadores de hierbas para el cuidado diario del cabello.",
+    "description": "El cabello también se cuida con hierbas: shampoos y acondicionadores de sábila, romero y otras plantas clásicas del cuidado capilar mexicano, pensados para lavado frecuente y para mantener sano el cuero cabelludo.\n\nManejamos distintas presentaciones y líneas según lo que hay en mostrador. Consulta por WhatsApp qué shampoos y acondicionadores hay disponibles hoy.",
     "category": "cuidado-personal",
     "price": null,
-    "image": "/images/products/jabon-miel-avena.svg"
+    "image": "/images/products/shampoos-y-acondicionadores.jpg"
   },
   {
     "slug": "copal-blanco",
-    "name": "Copal Blanco en Grano",
-    "shortDescription": "Copal blanco en grano para sahumerios y limpias de casa.",
-    "description": "El copal es la resina ceremonial más emblemática de México: desde la época prehispánica se emplea tradicionalmente para sahumar espacios, acompañar ceremonias y elevar peticiones. Su humo blanco y aromático se usa para limpiar el ambiente.\n\nSe presenta en grano, listo para quemarse en sahumerio o bracero. Pregunta por nuestras demás resinas e inciensos para sahumerio.",
-    "category": "otros",
+    "name": "Copal para Sahumerio",
+    "shortDescription": "Copal en grano para sahumerios, limpias de casa y ceremonias.",
+    "description": "El copal es la resina ceremonial más emblemática de México: desde la época prehispánica se emplea tradicionalmente para sahumar espacios, acompañar ceremonias y elevar peticiones. Su humo blanco y aromático se usa para limpiar el ambiente y dejar la casa en paz.\n\nSe presenta en grano, listo para quemarse en sahumerio o bracero. Pregunta por nuestras demás resinas e inciensos para sahumerio.",
+    "category": "sahumerios-e-inciensos",
     "price": null,
-    "image": "/images/products/copal-blanco.svg"
+    "image": "/images/products/copal-para-sahumerio.jpg",
+    "featured": true
+  },
+  {
+    "slug": "lagrimas-de-maria",
+    "name": "Lágrimas de María",
+    "shortDescription": "Resina de lágrimas de María para sahumerios de protección y consuelo.",
+    "description": "Las lágrimas de María son una resina aromática de la tradición devocional mexicana: se queman en sahumerio para pedir protección y consuelo, y para acompañar peticiones a la Virgen. Su aroma dulce y profundo perfuma la casa y serena el ambiente.\n\nSe presenta en grano, lista para el sahumerio o el bracero. Consulta por WhatsApp la presentación disponible y cómo quemarla según tu intención.",
+    "category": "sahumerios-e-inciensos",
+    "price": null,
+    "image": "/images/products/lagrimas-de-maria.jpg"
+  },
+  {
+    "slug": "inciensos-de-caja",
+    "name": "Inciensos de Caja",
+    "shortDescription": "Inciensos en caja: varitas, conos y mezclas para cada aroma e intención.",
+    "description": "Los inciensos de caja son la forma más práctica de perfumar y limpiar la casa: varitas, conos y mezclas aromáticas —desde el sándalo clásico hasta mezclas de intención— listos para encenderse un rato y cambiar el ambiente del cuarto.\n\nManejamos distintos aromas y marcas, y la selección del mostrador va rotando. Consulta por WhatsApp qué aromas hay disponibles hoy.",
+    "category": "sahumerios-e-inciensos",
+    "price": null,
+    "image": "/images/products/inciensos-de-caja.jpg"
   }
 ]

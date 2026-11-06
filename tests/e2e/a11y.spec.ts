@@ -4,10 +4,11 @@ import { expect, test } from "@playwright/test";
 /**
  * Escaneos de accesibilidad con axe-core (WCAG 2.0 nivel A + AA).
  *
- * Muestra representativa: home, catálogo con filtro, ficha de producto
- * sin precio (bloque "consulta el precio") y con precio (bloque $ MXN),
- * ubicación (mapa embebido), contacto (formulario) y una página legal
- * (índice con anclas). Si axe reporta una violación critical/serious,
+ * Muestra representativa: home, catálogo con filtro, dos fichas de
+ * producto (todo el catálogo se publica sin precio, así que ambas
+ * muestran el bloque "consulta el precio por WhatsApp"), ubicación
+ * (mapa embebido), contacto (formulario) y una página legal (índice
+ * con anclas). Si axe reporta una violación critical/serious,
  * es un BUG REAL de accesibilidad del sitio: se corrige el componente,
  * no se silencia la regla. Cualquier disableSpecificRules DEBE venir
  * con justificación documentada.
@@ -15,8 +16,8 @@ import { expect, test } from "@playwright/test";
 const PAGINAS: readonly string[] = [
   "/",
   "/catalogo",
-  "/catalogo/veladora-blanca-7-dias",
-  "/catalogo/veladora-roja-7-dias",
+  "/catalogo/veladoras-preparadas",
+  "/catalogo/copal-blanco",
   "/ubicacion",
   "/contacto",
   "/privacidad",

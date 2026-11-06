@@ -12,7 +12,7 @@ import ProductCard from "@/components/ProductCard";
 import SprigDivider from "@/components/SprigDivider";
 
 const CATALOGO_DESCRIPTION =
-  "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, y cuidado natural, con asesoría tradicional en Frontera, Coahuila.";
+  "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, cuidado natural y sahumerios e inciensos, con asesoría tradicional en Frontera, Coahuila.";
 
 export const metadata: Metadata = {
   title: "Catálogo",
@@ -69,8 +69,8 @@ export default async function CatalogoPage({
         <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-green-800/80">
           La vitrina del mostrador ordenada por familias: hierbas y preparados
           de siempre, veladoras para cada intención, aguas y riegos, lociones,
-          cápsulas y cuidado natural. Filtra por categoría o recorre todo de
-          corrido.
+          cápsulas, cuidado natural y sahumerios e inciensos. Filtra por
+          categoría o recorre todo de corrido.
         </p>
       </header>
 

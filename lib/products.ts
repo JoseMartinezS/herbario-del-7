@@ -10,9 +10,8 @@ import type { Category, Product } from "./types";
  * El JSON se valida con el esquema zod (lib/schema.ts) una sola vez,
  * de forma lazy: el primer acceso parsea y cachea; los siguientes reutilizan.
  *
- * TODO: reemplazar con precios reales — los precios cargados en
- * content/products.json (45 y 60) son EJEMPLOS editables.
- * price: null se interpreta como "Consulta el precio por WhatsApp".
+ * price: null se interpreta como "Consulta el precio por WhatsApp"
+ * (hoy todo el catálogo se publica así; cargar el número al confirmarlo).
  */
 
 let productsCache: Product[] | null = null;

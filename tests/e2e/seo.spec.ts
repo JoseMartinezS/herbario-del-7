@@ -1,17 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-/** Slugs de las 10 fichas de producto (content/products.json). */
+/** Slugs de las 15 fichas de producto (content/products.json). */
 const SLUGS_PRODUCTOS: readonly string[] = [
-  "veladora-blanca-7-dias",
-  "veladora-roja-7-dias",
-  "ruda-fresca",
-  "te-manzanilla-tila",
-  "agua-san-miguel",
-  "locion-ruda",
-  "capsulas-ajo",
-  "shampoo-sabila-romero",
-  "jabon-miel-avena",
+  "veladoras-parafina",
+  "veladoras-coctel",
+  "veladoras-preparadas",
+  "hierbas",
+  "tes-e-infusiones",
+  "aguas-espirituales",
+  "banos-espirituales",
+  "riegos-fuertes",
+  "lociones-wiskeras",
+  "capsulas-y-productos-naturales",
+  "jabones-y-cremas",
+  "shampoos-y-acondicionadores",
   "copal-blanco",
+  "lagrimas-de-maria",
+  "inciensos-de-caja",
 ];
 
 /** Las 8 rutas fijas del sitio (app/sitemap.ts, paginasFijas). */
@@ -27,7 +32,7 @@ const RUTAS_FIJAS: readonly string[] = [
 ];
 
 test.describe("SEO servido", () => {
-  test("sitemap.xml incluye las 8 rutas fijas y las 10 fichas de producto", async ({
+  test("sitemap.xml incluye las 8 rutas fijas y las 15 fichas de producto", async ({
     request,
   }) => {
     const respuesta = await request.get("/sitemap.xml");

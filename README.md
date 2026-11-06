@@ -108,31 +108,33 @@ Cada producto tiene estos campos:
 | `description` | Dos párrafos separados por una línea en blanco (`\n\n`) |
 | `category` | Una de las categorías de `lib/types.ts` |
 | `price` | **Número** = precio visible en pesos (MXN). **`null`** = se muestra "Consulta el precio por WhatsApp" |
-| `image` | Ruta pública de la imagen, p. ej. `/images/products/ruda-fresca.svg` |
+| `image` | Ruta pública de la imagen, p. ej. `/images/products/veladoras-parafina.jpg` |
 | `featured` | Opcional; `true` lo muestra en los destacados del inicio |
 
-> **Ojo con los precios:** los $45 y $60 cargados hoy son **EJEMPLOS de referencia**, no precios reales. La página de términos deja claro que los precios del sitio son referenciales y se confirman al momento del pedido. Sustitúyelos por precios reales (o usa `null` para "consulta por WhatsApp").
+> **Ojo con los precios:** hoy todo el catálogo se publica con `null` ("consulta el precio por WhatsApp") porque los precios se confirman al momento del pedido. La página de términos deja claro que los precios del sitio son referenciales. Carga el número cuando el dueño lo confirme.
 
 ### Datos del negocio → `content/business.ts`
 
 Es la **única fuente de verdad** del NAP (nombre, dirección, teléfono) y de los horarios. Header, Footer, páginas de contacto/ubicación, metadatos y el JSON-LD leen de aquí: **cambia el dato una vez y se actualiza en todo el sitio**. Nunca dupliques estos valores en otro archivo.
 
-### Ilustraciones por fotos reales → `public/images/products/`
+### Fotos del catálogo → `public/images/products/`
 
-Las fichas usan ilustraciones SVG (una por producto, con el nombre del slug). Para pasar a fotos reales:
+Cada línea de producto lleva una **foto real del mostrador** (JPG, ~90 KB, fondo blanco), nombrada con el slug exacto de su ficha (p. ej. `veladoras-parafina.jpg`), o una ilustración SVG de transición mientras llega la foto (`hierbas.svg` es la única pendiente).
 
-1. Saca fotos cuadradas, idealmente **800×800 px o más**, en JPG o WebP, con fondo limpio y buena luz.
-2. Sustituye el archivo en `public/images/products/` **manteniendo el nombre exacto** (p. ej. `ruda-fresca.jpg` en lugar de `ruda-fresca.svg`).
+Para reponer o mejorar una foto:
+
+1. Saca la foto cuadrada, idealmente **800×800 px o más**, en JPG o WebP, con fondo limpio y buena luz.
+2. Guárdala en `public/images/products/` **con el nombre del slug** (p. ej. `hierbas.jpg` para la ficha `hierbas`).
 3. Actualiza el campo `image` del producto en `content/products.json` con la nueva extensión.
 
-Nota técnica: el validador del catálogo (`lib/schema.ts`) hoy solo acepta imágenes `.svg` en esa carpeta; para usar `.jpg`/`.webp` hay que ajustar esa expresión regular (es un cambio de una línea). Mientras tanto, la regla es esa.
+Nota técnica: el validador del catálogo (`lib/schema.ts`) acepta imágenes `.svg`, `.jpg`, `.jpeg` y `.webp` dentro de `/images/products/`, en minúsculas y nombradas igual que el slug.
 
 ## SEO: qué hay y dónde
 
 - **Metadatos por página** (`title` + `description` en español, títulos únicos; el layout define la plantilla `… | Herbario Del 7` y el `metadataBase`).
 - **JSON-LD** (`components/JsonLd.tsx`, montado en `app/layout.tsx`): schema.org `Store` con nombre, teléfono, correo, dirección, horarios por turno y redes. Sale de `content/business.ts`.
 - **JSON-LD por ficha de producto** (`components/ProductJsonLd.tsx`, montado en `app/catalogo/[slug]/page.tsx`): schema.org `Product` (con `offers` en MXN solo si el producto tiene precio) y `BreadcrumbList` (Inicio › Catálogo › Producto). Los generadores son funciones puras en `lib/product-schema.ts`, testeadas con Vitest.
-- **Sitemap** (`app/sitemap.ts` → `/sitemap.xml`): incluye las 8 rutas fijas y las fichas de los 10 productos. `/admin` queda fuera.
+- **Sitemap** (`app/sitemap.ts` → `/sitemap.xml`): incluye las 8 rutas fijas y las fichas de los 15 productos. `/admin` queda fuera.
 - **robots** (`app/robots.ts` → `/robots.txt`): permite todo salvo `/admin`.
 - **Open Graph** (`app/opengraph-image.tsx`): imagen 1200×630 con la identidad del sitio; Next la aplica a todas las páginas.
 - Todo lo anterior se construye sobre `NEXT_PUBLIC_SITE_URL`.
