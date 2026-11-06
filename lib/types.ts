@@ -19,6 +19,17 @@ export const CATEGORIES = [
 /** Unión de slugs de categoría válidos. */
 export type Category = (typeof CATEGORIES)[number];
 
+/**
+ * Type guard de categoría: ¿el valor (p. ej. crudo de la base de datos)
+ * es uno de los slugs válidos? Protege el render público: una categoría
+ * inventada haría crashing en CATEGORY_INFO[category].
+ */
+export function isCategory(value: unknown): value is Category {
+  return (
+    typeof value === "string" && (CATEGORIES as readonly string[]).includes(value)
+  );
+}
+
 /** Etiqueta legible y descripción corta por categoría. */
 export const CATEGORY_INFO: Record<
   Category,
@@ -64,9 +75,11 @@ export const CATEGORY_INFO: Record<
  *
  * - `description`: dos párrafos cortos separados por un salto de línea doble
  *   (`\n\n`), listos para renderizar con `whitespace-pre-line` o split.
- * - `image`: ruta pública de la imagen del producto — foto real
- *   (`.jpg`/`.jpeg`/`.webp`) o SVG de transición, p. ej.
- *   `/images/products/veladoras-parafina.jpg`.
+ * - `image`: imagen del producto. En modo JSON local es una ruta pública
+ *   (`.jpg`/`.jpeg`/`.webp` o SVG de transición, p. ej.
+ *   `/images/products/veladoras-parafina.jpg`); en modo Supabase es la
+ *   URL absoluta del bucket público de Storage. El JSON-LD y next/image
+ *   soportan ambas formas (ver lib/product-schema.ts y next.config.ts).
  * - `price`: precio en pesos mexicanos (MXN). `null` significa
  *   "Consulta el precio por WhatsApp".
  *   TODO: cargar el número cuando el dueño confirme precios — hoy todo el

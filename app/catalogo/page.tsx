@@ -25,6 +25,15 @@ export const metadata: Metadata = {
 };
 
 /**
+ * ISR: regenera la página cada hora para reflejar cambios del catálogo (en
+ * modo Supabase) sin redeployar; en F2.3 pasará a revalidación bajo
+ * demanda. Nota: esta página lee `searchParams` (el filtro por categoría),
+ * así que Next la renderiza por request y este revalidate queda declarado
+ * para cuando el filtro se mueva a cliente.
+ */
+export const revalidate = 3600;
+
+/**
  * Valida el query param `categoria` contra las categorías reales.
  * Acepta `string | string[]` (si el parámetro se repite en la URL llega como
  * arreglo) y degrada a “Todas” ante cualquier valor inválido o vacío.
@@ -46,10 +55,10 @@ export default async function CatalogoPage({
   const { categoria } = await searchParams;
   const active = parseCategory(categoria);
 
-  const allProducts = getProducts();
-  const categoriesWithCounts = getCategoriesWithCounts();
+  const allProducts = await getProducts();
+  const categoriesWithCounts = await getCategoriesWithCounts();
   const products = active
-    ? getProductsByCategory(active)
+    ? await getProductsByCategory(active)
     : allProducts;
 
   const countLabel = active
