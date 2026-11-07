@@ -1,51 +1,69 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import SprigDivider from "@/components/SprigDivider";
+import { ADMIN_LOGIN_PATH } from "@/lib/supabase-auth";
+import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
+import { logoutAction } from "./actions";
+
+/**
+ * Interior del panel admin (F2.2): la bienvenida post-login.
+ *
+ * Server component que lee al usuario autenticado desde las cookies de
+ * sesión (verificación autoritativa contra el servidor de Auth). En
+ * condiciones normales el middleware ya frenó a cualquier intruso ANTES de
+ * llegar acá; el chequeo de abajo es defensivo — si por alguna razón no hay
+ * sesión (cookies limpiadas a mitad de vuelo, token revocado), se trata
+ * como no autorizado y a la puerta.
+ *
+ * El botón "Cerrar sesión" es un form con la Server Action `logoutAction`:
+ * funciona sin JavaScript, el SDK limpia las cookies httpOnly en el server
+ * y nadie más viaja en el request. Sin confirmación: reentrar es barato.
+ *
+ * La gestión de productos (CRUD del catálogo) llega en F2.3.
+ */
 
 export const metadata: Metadata = {
-  title: "Admin",
+  title: "Panel de administración",
   robots: { index: false, follow: false },
 };
 
-// Página placeholder: el panel de administración del catálogo llegará en una
-// fase futura del proyecto. Sin funcionalidad por ahora.
-const PLAN = [
-  "Crear, editar y retirar productos del catálogo, con foto, precio y categoría.",
-  "Marcar productos como destacados para la página de inicio.",
-  "Acceso protegido, solo para el personal del herbolario.",
-] as const;
+export default async function AdminPage() {
+  const user = await getAuthenticatedUser();
+  if (user === null) {
+    redirect(ADMIN_LOGIN_PATH);
+  }
 
-export default function AdminPage() {
   return (
-    <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+    <section className="mx-auto max-w-xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      {/* Doble filete dorado: la firma visual de la familia /admin. */}
       <div className="rounded-2xl border-2 border-gold-600/60 p-1.5">
         <div className="rounded-xl p-6 ring-1 ring-inset ring-gold-600/40 sm:p-10">
-          <p className="inline-flex items-center rounded-full border border-gold-200 bg-gold-100 px-3 py-1 text-sm font-medium text-gold-800">
-            En preparación
-          </p>
-          <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-balance text-green-800 sm:text-4xl">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-balance text-green-800 sm:text-4xl">
             Panel de administración
           </h1>
-          <p className="mt-4 max-w-prose text-pretty text-base leading-relaxed text-green-800/80">
-            El panel para gestionar el catálogo del herbolario llegará en una fase
-            futura del sitio. Esto es lo que estamos planeando:
+          <p className="mt-4 max-w-prose text-pretty text-base leading-relaxed text-green-800/85">
+            Hola,{" "}
+            <span className="font-semibold break-all" translate="no">
+              {user.email ?? "tu cuenta"}
+            </span>
+            . Tu sesión quedó activa.
           </p>
-          <ul className="mt-6 flex max-w-prose flex-col gap-3">
-            {PLAN.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-3 text-pretty text-base leading-relaxed text-green-800/85"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mt-2 h-2 w-2 shrink-0 rounded-full bg-gold-500"
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6 max-w-prose text-sm leading-relaxed text-green-800/65">
-            Mientras tanto, el catálogo se actualiza de forma manual y esta
-            página no afecta la tienda pública.
+          <SprigDivider className="mt-6" />
+          <p className="mt-6 max-w-prose text-pretty text-base leading-relaxed text-green-800/85">
+            El panel de productos llega en la siguiente fase (F2.3).
           </p>
+          <p className="mt-3 max-w-prose text-pretty text-sm leading-relaxed text-green-800/65">
+            Desde aquí vas a poder crear, editar y retirar las fichas del
+            catálogo del herbolario, con foto, precio y categoría.
+          </p>
+          <form action={logoutAction} className="mt-8">
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full border border-green-300 bg-transparent px-6 py-3 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
+            >
+              Cerrar sesión
+            </button>
+          </form>
         </div>
       </div>
     </section>

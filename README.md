@@ -6,7 +6,7 @@ Sitio web de **Herbario Del 7**, herbolario de Frontera, Coahuila (México): hie
 
 - **Negocio:** herbolario físico establecido en Presidente Carranza #119, Col. Guadalupe Borja, Frontera, Coahuila. Atiende de lunes a sábado en dos turnos (9:00–14:00 y 15:00–21:00) y domingo de 10:00 a 13:00.
 - **Objetivo del sitio:** dar presencia digital al negocio y pasar la **verificación de negocio de Meta** (Business Verification), que exige que el sitio publique información consistente del negocio: nombre, dirección, teléfono y correo (los datos NAP).
-- **Alcance actual:** catálogo informativo + contacto. **No hay e-commerce** (sin carrito, sin pagos), **no hay backend** (el formulario de contacto abre WhatsApp con el mensaje armado; no se guarda nada en servidores propios) y **no hay cookies de rastreo**. Los planes de admin y marketing están documentados abajo, no implementados.
+- **Alcance actual:** catálogo informativo + contacto. **No hay e-commerce** (sin carrito, sin pagos), **no hay backend** (el formulario de contacto abre WhatsApp con el mensaje armado; no se guarda nada en servidores propios) y **no hay cookies de rastreo**. El panel de administración ya tiene login protegido (F2.2); la gestión de productos llega en F2.3. Los planes de marketing están documentados abajo.
 
 ## Stack y requisitos
 
@@ -31,8 +31,8 @@ El sitio queda en `http://localhost:3000`.
 | Variable | Descripción |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | URL pública del sitio, **sin slash final** (p. ej. `https://herbariodel7.com`). Alimenta el `metadataBase`, el JSON-LD, el sitemap, el robots y las URLs canónicas. Actualízala al conectar el dominio real. |
-| `NEXT_PUBLIC_SUPABASE_URL` | **Opcional.** URL del proyecto de Supabase. Sin esta variable (y la de abajo) el catálogo se lee de `content/products.json`, el modo original. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Opcional.** Publishable/anon key de Supabase (la pública, jamás la `service_role`). Con las dos variables presentes, el catálogo se lee de Supabase con fallback al JSON local. |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Opcional.** URL del proyecto de Supabase. Sin esta variable (y la de abajo) el catálogo se lee de `content/products.json`, el modo original, y el panel admin queda cerrado (no hay sesión posible). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Opcional.** Publishable/anon key de Supabase (la pública, jamás la `service_role`). Con las dos variables presentes, el catálogo se lee de Supabase con fallback al JSON local, y el login del panel admin funciona con la cuenta del dashboard. |
 
 Las dos variables de Supabase están documentadas (y vacías, como plantilla) en `.env.example`; la guía para activarlas está en [`supabase/README.md`](supabase/README.md) y en la sección de abajo.
 
@@ -55,8 +55,8 @@ Antes de entregar cambios, corre `npx tsc --noEmit` y `npm run lint`: deben sali
 
 | Comando | Qué cubre |
 | --- | --- |
-| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod, generadores JSON-LD de la ficha de producto y la capa de catálogo dual (mapeo de filas de Supabase, filtrado por status y fallback al JSON local). |
-| `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos) y accesibilidad con axe (WCAG 2.0 A/AA). |
+| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod, generadores JSON-LD de la ficha de producto, la capa de catálogo dual (mapeo de filas de Supabase, filtrado por status y fallback al JSON local) y la lógica pura del login admin (config de env vars, saneo del `?next=` y traducción de errores de Supabase). |
+| `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos), accesibilidad con axe (WCAG 2.0 A/AA) y la protección del panel admin (redirect a `/admin/login` sin sesión, formulario de la puerta y noindex; el smoke test de login real se activa solo con credenciales, ver abajo). |
 | `npm run test:e2e:prod` | La misma suite E2E **contra el build de producción**: el script hace `npm run build` y después sirve con `npm run start`. Lo corre el dueño o CI al publicar; no hace falta en el día a día. |
 
 Notas sobre la suite E2E (`tests/e2e/`):
@@ -82,16 +82,20 @@ app/                    Rutas (App Router)
   privacidad/           Política de privacidad
   terminos/             Términos y condiciones
   cookies/              Política de cookies
-  admin/                Placeholder noindex del panel de administración (futuro)
+  admin/                Panel de administración (protegido: ver sección propia)
+    page.tsx            Interior post-login (F2.2; el CRUD llega en F2.3)
+    login/page.tsx      La puerta: formulario de acceso (noindex)
+    actions.ts          Server Actions: login y logout contra Supabase Auth
   not-found.tsx         Página 404
   sitemap.ts            Genera /sitemap.xml
   robots.ts             Genera /robots.txt
   opengraph-image.tsx   Imagen Open Graph 1200×630 del sitio
+middleware.ts           El portero: protege /admin/* (menos /admin/login) con la sesión de Supabase
 components/             Componentes de UI (Header, Footer, ProductCard, LegalPage, JsonLd, íconos…)
 content/                Contenido editable del negocio y del catálogo
   business.ts           Fuente única de verdad del NAP y horarios
   products.json         Catálogo de productos (snapshot semilla/respaldo)
-lib/                    Lógica: acceso al catálogo (JSON/Supabase), esquema zod, tipos, URL del sitio
+lib/                    Lógica: acceso al catálogo (JSON/Supabase), autenticación admin, esquema zod, tipos, URL del sitio
 supabase/               Migración del catálogo a Supabase (SQL + guía de activación)
 tests/
   setup.ts              Setup global de Vitest (jest-dom)
@@ -223,13 +227,57 @@ Google Search Console es la herramienta gratuita de Google para saber cómo te e
 
 > **Nota:** la indexación tarda días — a veces semanas — en reflejarse; no te preocupes si al principio el sitio no aparece en Google. Tener el **Google Business Profile** del negocio verificado también ayuda: Google cruza esos datos y favorece el descubrimiento local en Frontera y alrededores.
 
-## Panel de administración (futuro, no implementado)
+## Panel de administración (`/admin`)
 
-`/admin` es hoy un placeholder público de sola lectura y `noindex`. El plan cuando se implemente:
+Desde F2.2 el panel está **protegido con Supabase Auth**. Solo hay **UNA cuenta** (la del personal del herbolario): no existe registro público ni "olvidé mi contraseña" en el sitio — la cuenta se administra desde el dashboard de Supabase. La gestión de productos (CRUD del catálogo) llega en **F2.3**.
+
+### Cómo funciona el acceso
+
+- **`middleware.ts`** protege toda la familia `/admin/*` menos `/admin/login`. Sin sesión válida → redirect 307 a la puerta, guardando la URL original en `?next=` para volver después de entrar. Si faltan las env vars de Supabase el portero **cierra igual** (fail-closed): el panel jamás queda abierto por accidente.
+- **`/admin/login`** es la puerta: correo + contraseña. El login corre entero en el servidor (Server Action): la contraseña no llega al bundle del cliente y la cookie de sesión es **httpOnly** (ningún script del navegador puede leerla). La sesión se refresca sola en el middleware cuando el token está por vencer.
+- **`/admin`** es el interior: saluda con el email de la cuenta y ofrece **"Cerrar sesión"** (limpia las cookies y vuelve a la puerta). Reingresar es la confirmación: no pide doble chequeo.
+- Todo `/admin` sigue **noindex** y fuera del sitemap; `robots.txt` lo bloquea.
+
+La autenticación usa las **mismas dos env vars** que el catálogo (`NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`) — no hay variables nuevas.
+
+### Crear la cuenta (ya existe una)
+
+La cuenta actual se creó desde el dashboard. Si algún día hay que crear otra o cambiar algo:
+
+1. Entra al dashboard del proyecto en [supabase.com](https://supabase.com/dashboard) → **Authentication → Users → Add user**.
+2. Marca **"Auto Confirm User"** (o confírmala después: ver abajo).
+3. Anota el correo y la contraseña en un lugar seguro (no en este repo).
+
+### Si el login falla con "Tu cuenta todavía no está confirmada"
+
+Eso es el error **"Email not confirmed"** de Supabase: la cuenta existe pero nunca se confirmó (pasa cuando se creó sin "Auto Confirm User"). El sitio no tiene flujo de verificación de email — una sola cuenta no lo necesita — así que se resuelve a mano:
+
+1. Dashboard → **Authentication → Users**.
+2. En la fila del usuario, abre el menú (⋮) → **"Confirm user"**.
+
+Listo: el login funciona en el intento siguiente, sin redeploy.
+
+### Si se olvida la contraseña
+
+Tampoco hay flujo de recuperación en el sitio (una sola cuenta, se administra por dashboard):
+
+1. Dashboard → **Authentication → Users**.
+2. En la fila del usuario, menú (⋮) → **"Send password recovery"** (llega un enlace al correo para definir una nueva) o **"Set new password"** (la cambias directo desde el dashboard).
+
+### Probar el acceso localmente
+
+El E2E de admin (`tests/e2e/admin.spec.ts`) valida sin credenciales que `/admin` redirige a la puerta y que el formulario responde. Para probar el login real de punta a punta:
+
+```powershell
+$env:ADMIN_EMAIL = "la cuenta del dashboard"
+$env:ADMIN_PASSWORD = "su contraseña"
+npx playwright test tests/e2e/admin.spec.ts
+```
+
+### Lo que falta (F2.3)
 
 - CRUD de productos: crear, editar y retirar fichas con foto, precio y categoría, validado con el mismo esquema zod de `lib/schema.ts`.
 - Marcar/desmarcar destacados para el inicio.
-- Acceso protegido con autenticación, solo para personal del herbolario (middleware + login; hoy no hay ninguna credencial en el proyecto).
 
 ## Fase 2 (futuro)
 
