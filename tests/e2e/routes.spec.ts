@@ -15,7 +15,8 @@ const RUTAS_PRINCIPALES: ReadonlyArray<{ ruta: string; h1: string }> = [
   { ruta: "/privacidad", h1: "Política de privacidad" },
   { ruta: "/terminos", h1: "Términos y condiciones" },
   { ruta: "/cookies", h1: "Política de cookies" },
-  { ruta: "/admin", h1: "Panel de administración" },
+  // /admin ya NO es pública: desde F2.2 el middleware redirige sin sesión
+  // a /admin/login. Su cobertura vive en tests/e2e/admin.spec.ts.
 ];
 
 test.describe("Rutas principales", () => {
@@ -30,13 +31,8 @@ test.describe("Rutas principales", () => {
     });
   }
 
-  test("/admin se marca noindex para buscadores", async ({ page }) => {
-    await page.goto("/admin");
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-      "content",
-      /noindex/,
-    );
-  });
+  // El noindex de /admin (y su redirect) lo cubre tests/e2e/admin.spec.ts:
+  // sin sesión esta ruta nunca renderiza, así que no hay h1 que revisar acá.
 
   test("una ficha inexistente devuelve 404 con la página personalizada", async ({
     page,
