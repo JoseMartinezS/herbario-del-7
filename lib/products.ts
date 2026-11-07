@@ -146,3 +146,17 @@ export function resetCatalogCacheForTests(): void {
   localCatalogCache = null;
   remoteCatalogCache = null;
 }
+
+/**
+ * Descarta la memoización del catálogo REMOTO (F2.3).
+ *
+ * La llaman las Server Actions del panel justo después de una mutación:
+ * revalidatePath marca las páginas para regenerar, pero la regeneración
+ * pasa por acá — y sin esto podría servirse la copia memoizada de hasta
+ * 60 s atrás (REMOTE_TTL_MS), demorando el cambio en el sitio público.
+ * Con la memoización descartada en el MISMO proceso de la action, la
+ * regeneración inmediata hace un fetch fresco a Supabase.
+ */
+export function invalidateCatalogCache(): void {
+  remoteCatalogCache = null;
+}

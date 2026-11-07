@@ -21,6 +21,33 @@ test.describe("Panel admin (protegido)", () => {
     expect(respuesta.headers()["location"]).toContain("/admin/login");
   });
 
+  test("GET /admin/productos/nuevo sin sesión responde 307 hacia /admin/login", async ({
+    request,
+  }) => {
+    const respuesta = await request.get("/admin/productos/nuevo", {
+      maxRedirects: 0,
+    });
+    expect(respuesta.status()).toBe(307);
+    expect(respuesta.headers()["location"]).toContain("/admin/login");
+    // El portero preserva la ruta original en ?next para volver tras el login.
+    expect(respuesta.headers()["location"]).toContain(
+      "next=%2Fadmin%2Fproductos%2Fnuevo",
+    );
+  });
+
+  test("GET /admin/productos/<id> sin sesión responde 307 hacia /admin/login", async ({
+    request,
+  }) => {
+    // Cualquier id (ni siquiera UUID): el portero frena antes de que la
+    // ruta exista como página.
+    const respuesta = await request.get(
+      "/admin/productos/00000000-0000-0000-0000-000000000000",
+      { maxRedirects: 0 },
+    );
+    expect(respuesta.status()).toBe(307);
+    expect(respuesta.headers()["location"]).toContain("/admin/login");
+  });
+
   test("el redirect preserva la ruta original en ?next para volver tras el login", async ({
     page,
   }) => {
@@ -71,7 +98,8 @@ test.describe("Panel admin (protegido)", () => {
 
 /**
  * SMOKE TEST DEL DUEÑO (no corre en CI): login real contra Supabase Auth,
- * saludo con el email en el interior y cierre de sesión.
+ * la LISTA del catálogo en el interior, un vistazo al formulario de
+ * edición y cierre de sesión.
  *
  * Para correrlo localmente (con las env vars de Supabase activas en
  * .env.local y el dev server de Playwright):
@@ -84,6 +112,14 @@ test.describe("Panel admin (protegido)", () => {
  * (Authentication → Users). Si ese usuario no tiene el email confirmado,
  * el login falla con "Email not confirmed" — el fix también es desde el
  * dashboard (ver README, sección "Panel de administración").
+ *
+ * DELIBERADAMENTE READ-ONLY (F2.3): .env.local apunta al MISMO proyecto
+ * de Supabase que sirve el sitio en producción, así que un smoke que
+ * cree/edite/retire productos escribiría en la base del sitio real (y
+ * crear una ficha de prueba dejaría una fila para siempre: el borrado
+ * físico no existe en esta fase). El CRUD completo queda como checklist
+ * manual del dueño (documentada en el README); acá se valida que el
+ * panel carga: lista, botón de crear y formulario de edición prefilled.
  */
 const emailAdmin = process.env.ADMIN_EMAIL;
 const passwordAdmin = process.env.ADMIN_PASSWORD;
@@ -94,7 +130,7 @@ test.describe("Smoke del dueño: login real (requiere credenciales)", () => {
     "requiere ADMIN_EMAIL y ADMIN_PASSWORD en el entorno",
   );
 
-  test("entrar con la cuenta real, ver el interior y cerrar sesión", async ({
+  test("entrar con la cuenta real, ver la lista del panel, abrir una ficha y cerrar sesión", async ({
     page,
   }) => {
     await page.goto("/admin/login");
@@ -104,16 +140,36 @@ test.describe("Smoke del dueño: login real (requiere credenciales)", () => {
     await page.getByLabel("Contraseña").fill(passwordAdmin ?? "");
     await page.getByRole("button", { name: "Entrar" }).click();
 
-    // Interior post-login: saludo + botón de cerrar sesión.
+    // Interior post-login (F2.3): saludo + lista del catálogo.
     await expect(
       page.getByRole("heading", { level: 1, name: "Panel de administración" }),
     ).toBeVisible();
     await expect(page.getByText(emailAdmin ?? "")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Nuevo producto" }),
+    ).toBeVisible();
 
-    // Cerrar sesión vuelve a la puerta.
+    // La lista muestra las fichas del catálogo (15 líneas sembradas).
+    await expect(
+      page.getByRole("link", { name: /^Editar / }).first(),
+    ).toBeVisible();
+
+    // Abrir la primera ficha: el formulario llega prefilled con su nombre.
+    await page.getByRole("link", { name: /^Editar / }).first().click();
+    await expect(page).toHaveURL(/\/admin\/productos\//);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Editar producto" }),
+    ).toBeVisible();
+    const primerNombre = await page
+      .getByRole("textbox", { name: "Nombre" })
+      .inputValue();
+    expect(primerNombre.length).toBeGreaterThan(0);
+
+    // Volver y cerrar sesión: a la puerta, y la sesión quedó muerta.
+    await page.getByRole("link", { name: "Volver al panel" }).click();
+    await expect(page).toHaveURL(/\/admin$/);
     await page.getByRole("button", { name: "Cerrar sesión" }).click();
     await expect(page).toHaveURL(/\/admin\/login/);
-    // Y la sesión quedó muerta: /admin ya no deja pasar.
     await page.goto("/admin");
     await expect(page).toHaveURL(/\/admin\/login/);
   });
