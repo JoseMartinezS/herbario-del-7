@@ -163,3 +163,22 @@ export function IconShield(props: IconProps) {
     </svg>
   );
 }
+
+/** Estrella rellena, para el badge de producto destacado del panel. */
+export function IconStar(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor" {...props}>
+      <path d="M12 3.2l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+    </svg>
+  );
+}
+
+/** Cámara de fotos, para la sección de foto del producto del panel. */
+export function IconCamera(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...strokeDefaults} {...props}>
+      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.1-1.8A1.8 1.8 0 0 1 10.2 3h3.6a1.8 1.8 0 0 1 1.4.7L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" />
+      <circle cx="12" cy="12.5" r="3.4" />
+    </svg>
+  );
+}

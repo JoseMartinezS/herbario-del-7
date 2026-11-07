@@ -100,8 +100,11 @@ export function getSupabaseCatalogConfig(): SupabaseCatalogConfig | null {
  * filtra aparte. Es lo que protege el render público: una fila que no
  * cumple esto jamás llega a la UI, porque haría crashing
  * (p. ej. CATEGORY_INFO[category] undefined con una categoría inventada).
+ *
+ * Exportada desde F2.3: el panel (lib/admin-products.ts) reusa la misma
+ * validación estructural para sus filas (que además traen `id`).
  */
-function isProductRow(row: unknown): row is ProductRow {
+export function isProductRow(row: unknown): row is ProductRow {
   if (typeof row !== "object" || row === null) {
     return false;
   }

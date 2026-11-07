@@ -101,6 +101,15 @@ if (supabaseUrl) {
 }
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // F2.3: el panel sube la foto del producto por Server Action (ya
+      // comprimida en el navegador: máx. 1200 px en WebP). El default de
+      // 1 mb quedaría corto para un SVG grande; el techo real es el
+      // límite del bucket (10 mb, validado en el cliente Y en la action).
+      bodySizeLimit: "10mb",
+    },
+  },
   images: {
     ...(supabaseImagePattern ? { remotePatterns: [supabaseImagePattern] } : {}),
     // El logotipo y las ilustraciones del catálogo son SVG propios servidos
