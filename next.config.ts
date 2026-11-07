@@ -21,8 +21,13 @@ const contentSecurityPolicy = [
   // SVGs propios de /public y OG image generada en el mismo origen. En
   // modo Supabase las imágenes del catálogo también pasan por el
   // optimizador de next/image (/_next/image: mismo origen), así que no hay
-  // que abrir img-src a terceros.
-  "img-src 'self' data:",
+  // que abrir img-src a terceros. `blob:` es para el panel admin (F2.3):
+  // la foto elegida se decodifica y previsualiza vía objectURL en el
+  // propio navegador, y sin este esquema la CSP bloqueaba al dueño
+  // (falso positivo encontrado en el smoke del 7-nov; contrato fijado en
+  // tests/e2e/security.spec.ts). blob: solo existe dentro de la propia
+  // pestaña: no es una puerta para terceros.
+  "img-src 'self' data: blob:",
   // Fraunces e Inter se cargan con next/font → self-hosted en
   // /_next/static/media (mismo origen).
   "font-src 'self' data:",
