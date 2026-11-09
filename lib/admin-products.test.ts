@@ -34,6 +34,7 @@ const filaValida: AdminProductRow = {
   featured: true,
   status: "published",
   position: 3,
+  updated_at: "2026-11-04T12:00:00.000Z",
 };
 
 describe("isAdminProductRow", () => {
@@ -57,6 +58,14 @@ describe("isAdminProductRow", () => {
     ).toBe(false);
   });
 
+  it("debería rechazar filas sin updated_at (el orden editados la necesita)", () => {
+    const { updated_at, ...sinFecha } = filaValida;
+    expect(updated_at).toBeDefined(); // sanity de la fixture
+    expect(isAdminProductRow(sinFecha)).toBe(false);
+    // un updated_at que no es string (null de una base manipulada) tampoco
+    expect(isAdminProductRow({ ...filaValida, updated_at: null })).toBe(false);
+  });
+
   it("debería heredar el rechazo estructural de isProductRow (F2.1)", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(warn).not.toHaveBeenCalled();
@@ -70,7 +79,7 @@ describe("isAdminProductRow", () => {
 });
 
 describe("mapRowToAdminProduct", () => {
-  it("debería mapear snake_case → camelCase conservando id, status y position", () => {
+  it("debería mapear snake_case → camelCase conservando id, status, position y updatedAt", () => {
     const product = mapRowToAdminProduct(filaValida);
     expect(product).toEqual({
       id: filaValida.id,
@@ -84,6 +93,7 @@ describe("mapRowToAdminProduct", () => {
       featured: true,
       status: "published",
       position: 3,
+      updatedAt: "2026-11-04T12:00:00.000Z",
     });
   });
 

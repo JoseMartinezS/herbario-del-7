@@ -38,15 +38,18 @@ const ADMIN_PRODUCTS_SELECT = [
   "featured",
   "status",
   "position",
+  "updated_at",
 ].join(",");
 
 /**
  * Fila del panel: la misma ProductRow del catálogo + `id` (el panel
- * edita por id, no por slug) y con el status acotado al unión real.
+ * edita por id, no por slug), `updated_at` (para el orden "últimos
+ * editados" de la lista) y el status acotado al unión real.
  */
 export interface AdminProductRow extends Omit<ProductRow, "status"> {
   id: string;
   status: ProductStatus;
+  updated_at: string;
 }
 
 /** Producto tal como lo muestra el panel (camelCase, con id y estado). */
@@ -62,11 +65,18 @@ export interface AdminProduct {
   featured: boolean;
   status: ProductStatus;
   position: number;
+  /**
+   * ISO 8601 de la última edición. La tabla NO tiene trigger de UPDATE
+   * (ver supabase/migration.sql): la app es dueña del timestamp — lo
+   * escribe updateProductAction y la lista lo usa para orden=editados.
+   */
+  updatedAt: string;
 }
 
 /**
  * Validación estructural de una fila del panel: la misma de
- * isProductRow (supabase-catalog) + id presente + status en el unión.
+ * isProductRow (supabase-catalog) + id presente + status en el unión +
+ * updated_at como string (PostgREST la devuelve siempre: not null).
  */
 export function isAdminProductRow(row: unknown): row is AdminProductRow {
   if (!isProductRow(row)) {
@@ -76,7 +86,8 @@ export function isAdminProductRow(row: unknown): row is AdminProductRow {
   return (
     typeof rowWithId.id === "string" &&
     rowWithId.id.length > 0 &&
-    (row.status === "published" || row.status === "retired")
+    (row.status === "published" || row.status === "retired") &&
+    typeof rowWithId.updated_at === "string"
   );
 }
 
@@ -103,6 +114,7 @@ export function mapRowToAdminProduct(
     featured: row.featured,
     status: row.status,
     position: row.position,
+    updatedAt: row.updated_at,
   };
 }
 
