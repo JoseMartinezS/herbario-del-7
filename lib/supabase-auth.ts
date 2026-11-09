@@ -82,6 +82,78 @@ export const AUTH_COOKIE_OPTIONS: CookieOptionsWithName = {
   secure: process.env.NODE_ENV === "production",
 };
 
+/* ============================================================================
+ * Expiración de sesión por inactividad (Polish del panel)
+ * ==========================================================================*/
+
+/** Cookie propia con el timestamp Unix (ms) de la última petición autenticada a /admin/*. */
+export const ADMIN_ACTIVITY_COOKIE = "sb-admin-last-activity";
+
+/**
+ * Ventana de inactividad de la sesión del panel: 5 horas.
+ *
+ * Media jornada de mostrador (decisión del dueño): la sesión acompaña
+ * mientras el panel se usa, y si el teléfono queda botado —o perdido—
+ * y nadie toca /admin durante 5 horas, la siguiente visita pide login
+ * de nuevo. Las cookies de Supabase + el refresh del middleware hacen
+ * la sesión casi eterna por diseño; esta ventana le pone horario de
+ * tienda: al día siguiente, siempre login.
+ */
+export const SESSION_INACTIVITY_MS = 5 * 60 * 60 * 1000;
+
+/**
+ * Opciones de la cookie de actividad (el mismo manejo que las de
+ * sesión): httpOnly para que ningún script la lea, lax, secure en
+ * producción, y 30 días de vida — más que cualquier sesión real de
+ * navegador, para que la ventana de 5 horas se cumpla aunque el celular
+ * no se reinicie en días. Si de verdad pasan 30 días sin tocar /admin,
+ * la cookie cae y el primer request entra por gracia (el refresh token
+ * de Supabase ya habrá caducado mucho antes).
+ */
+export const ADMIN_ACTIVITY_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: 30 * 24 * 60 * 60,
+} as const;
+
+/** Solo dígitos, y con tope de 15 (cubre épocas hasta el año ~2286). */
+const PATRON_TIMESTAMP = /^\d{1,15}$/;
+
+/**
+ * Parsea el valor crudo de la cookie de actividad → número, o null si
+ * está ausente o es basura (una cookie corrupta se trata como ausente:
+ * gracia, nunca expiración instantánea).
+ */
+export function parseLastActivityCookie(
+  raw: string | undefined,
+): number | null {
+  if (raw === undefined || !PATRON_TIMESTAMP.test(raw)) {
+    return null;
+  }
+  return Number(raw);
+}
+
+/**
+ * ¿La sesión del panel expiró por inactividad?
+ *
+ * - `lastActivity` en null (cookie ausente: primer despliegue, usuario
+ *   previo, o cookie corrupta) → NO expira: se crea con `now` en el
+ *   response (gracia — no se le cierra la sesión a nadie activo).
+ * - Ahora exacto menos 5 horas → al límite NO expira (ventana renovada).
+ * - Un timestamp a futuro (reloj desviado) tampoco: se renueva.
+ */
+export function shouldExpireSession(
+  lastActivity: number | null,
+  now: number,
+): boolean {
+  if (lastActivity === null) {
+    return false;
+  }
+  return now - lastActivity > SESSION_INACTIVITY_MS;
+}
+
 /**
  * Charset conservador para un path interno: letras, dígitos y los
  * caracteres legales de un URL (path + query). Rechaza backslashes,
