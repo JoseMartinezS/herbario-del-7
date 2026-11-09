@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AdminLoginForm from "@/components/AdminLoginForm";
-import { IconSprig } from "@/components/icons";
+import { IconClock, IconSprig } from "@/components/icons";
 import { sanitizeNextPath } from "@/lib/supabase-auth";
 import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
 
@@ -12,6 +12,11 @@ import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
  * El parámetro `?next=` (a dónde volver tras entrar) llega por URL y se
  * sanea ACÁ, en el servidor, antes de tocar el DOM: solo paths internos.
  * La Server Action lo vuelve a sanear — al cliente no se le cree nada.
+ *
+ * El parámetro `?expired=1` lo manda el middleware al cerrar la sesión
+ * por inactividad (5 horas sin tocar el panel): la puerta lo recibe con
+ * sanity — SOLO el valor exacto "1" muestra el aviso, cualquier otra
+ * cosa es ruido y no avisa nada.
  *
  * Si ya hay una sesión activa, ni siquiera se muestra el formulario: se
  * redirige directo al destino. No hay registro público ni "olvidé mi
@@ -39,6 +44,7 @@ export default async function AdminLoginPage({
 }) {
   const params = await searchParams;
   const destino = sanitizeNextPath(primerParametro(params.next));
+  const sesionExpirada = primerParametro(params.expired) === "1";
 
   // ¿Ya con sesión? Directo al interior, sin mostrar la puerta.
   const user = await getAuthenticatedUser();
@@ -59,6 +65,15 @@ export default async function AdminLoginPage({
           <p className="mt-2 text-pretty text-sm leading-relaxed text-green-800/75">
             Solo para el personal del herbolario.
           </p>
+          {sesionExpirada ? (
+            <div
+              role="status"
+              className="mt-5 flex items-start gap-3 rounded-xl border border-gold-300 bg-gold-100 px-4 py-3.5 text-pretty text-sm leading-relaxed text-green-900"
+            >
+              <IconClock className="mt-0.5 h-5 w-5 shrink-0 text-gold-700" />
+              <p>Tu sesión se cerró por inactividad. Vuelve a entrar para continuar.</p>
+            </div>
+          ) : null}
           <div className="mt-6">
             <AdminLoginForm nextPath={destino} />
           </div>

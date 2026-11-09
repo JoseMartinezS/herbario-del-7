@@ -1,22 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ADMIN_DEFAULT_PATH,
+  SESSION_INACTIVITY_MS,
   getSupabaseAuthConfig,
+  parseLastActivityCookie,
   sanitizeNextPath,
+  shouldExpireSession,
   translateAuthError,
 } from "./supabase-auth";
 
 /**
- * Tests de la parte PURA de la autenticación admin (F2.2): config de env
- * vars, saneo del parámetro `next` y traducción de errores de Supabase.
+ * Tests de la parte PURA de la autenticación admin (F2.2 + expiración por
+ * inactividad): config de env vars, saneo del parámetro `next`, traducción
+ * de errores de Supabase y la decisión de expiración de sesión.
  *
  * Lo que NO está acá, a propósito:
  *
  * - `middleware.ts`: corre en edge runtime, habla con el servidor de Auth
  *   (getUser) y está acoplado a NextRequest/NextResponse. No hay forma
  *   limpia de testearlo unitario sin mockear media internet; su contrato
- *   real (redirect a /admin/login con ?next=) lo cubre
- *   tests/e2e/admin.spec.ts contra el server de verdad.
+ *   real (redirect a /admin/login con ?next=, y ?expired=1 al expirar)
+ *   lo cubre tests/e2e/admin.spec.ts contra el server de verdad.
  * - `lib/supabase-auth-server.ts`: la factory depende de `next/headers`
  *   (cookies del request) y de la red. Ídem: cubierto por E2E.
  *
@@ -159,5 +163,80 @@ describe("translateAuthError", () => {
     expect(translateAuthError({ message: "Unexpected duck" })).toContain(
       "Inténtalo de nuevo",
     );
+  });
+});
+
+describe("shouldExpireSession (expiración por inactividad)", () => {
+  // Un "ahora" fijo: la función es pura, el reloj lo pone quien llama.
+  const ahora = 1_760_000_000_000;
+
+  it("la ventana es de 5 horas exactas (media jornada de mostrador)", () => {
+    expect(SESSION_INACTIVITY_MS).toBe(5 * 60 * 60 * 1000);
+  });
+
+  it("expira recién pasadas las 5 horas (5 h + 1 ms)", () => {
+    expect(shouldExpireSession(ahora - SESSION_INACTIVITY_MS - 1, ahora)).toBe(
+      true,
+    );
+  });
+
+  it("no expira un ms antes de las 5 horas (5 h − 1 ms)", () => {
+    expect(shouldExpireSession(ahora - SESSION_INACTIVITY_MS + 1, ahora)).toBe(
+      false,
+    );
+  });
+
+  it("en el límite exacto de las 5 horas no expira (la ventana se renueva)", () => {
+    expect(shouldExpireSession(ahora - SESSION_INACTIVITY_MS, ahora)).toBe(
+      false,
+    );
+  });
+
+  it("null (cookie ausente: primer despliegue, usuario previo) es gracia: no expira", () => {
+    expect(shouldExpireSession(null, ahora)).toBe(false);
+  });
+
+  it("actividad de ahora mismo: no expira", () => {
+    expect(shouldExpireSession(ahora, ahora)).toBe(false);
+  });
+
+  it("timestamp a futuro (reloj desviado): no expira, se renueva", () => {
+    expect(shouldExpireSession(ahora + 5 * 60_000, ahora)).toBe(false);
+  });
+
+  it("una jornada completa sin tocar el panel (24 h) expira", () => {
+    expect(shouldExpireSession(ahora - 24 * 60 * 60 * 1000, ahora)).toBe(true);
+  });
+});
+
+describe("parseLastActivityCookie", () => {
+  it("un timestamp en ms parsea a número", () => {
+    expect(parseLastActivityCookie("1760000000000")).toBe(1_760_000_000_000);
+    expect(parseLastActivityCookie("0")).toBe(0);
+  });
+
+  it("ausente o vacío → null (gracia)", () => {
+    expect(parseLastActivityCookie(undefined)).toBeNull();
+    expect(parseLastActivityCookie("")).toBeNull();
+  });
+
+  it("basura → null (cookie corrupta se trata como ausente)", () => {
+    for (const valor of [
+      "abc",
+      "-123",
+      "1.5",
+      "1e12",
+      " 123",
+      "123 ",
+      "NaN",
+      "Infinity",
+    ]) {
+      expect(parseLastActivityCookie(valor), JSON.stringify(valor)).toBeNull();
+    }
+  });
+
+  it("más de 15 dígitos → null (épocas absurdas son basura)", () => {
+    expect(parseLastActivityCookie("1".repeat(15))).toBe(111_111_111_111_111);
+    expect(parseLastActivityCookie("1".repeat(16))).toBeNull();
   });
 });

@@ -10,7 +10,9 @@ import {
 } from "@/lib/supabase-auth";
 import {
   createSupabaseAuthClient,
+  clearAdminActivityCookie,
   getAuthenticatedUser,
+  resetAdminActivityCookie,
 } from "@/lib/supabase-auth-server";
 import { slugify } from "@/lib/slugify";
 import {
@@ -119,9 +121,14 @@ export async function loginAction(
     return fallo;
   }
 
-  // Éxito: la cookie httpOnly ya la escribió el SDK. Redirigir (fuera del
-  // try/catch) al destino saneado — re-saneado acá porque el cliente pudo
-  // mandar cualquier cosa.
+  // Éxito: la cookie httpOnly ya la escribió el SDK. La cookie de
+  // actividad también arranca fresca — si el navegador traía una vieja
+  // de una sesión anterior, la sesión recién abierta no debe expirar
+  // al instante (el middleware la renueva en cada request a /admin).
+  await resetAdminActivityCookie();
+
+  // Redirigir (fuera del try/catch) al destino saneado — re-saneado acá
+  // porque el cliente pudo mandar cualquier cosa.
   redirect(sanitizeNextPath(input.nextPath));
 }
 
@@ -137,6 +144,10 @@ export async function logoutAction(): Promise<void> {
     const supabase = await createSupabaseAuthClient();
     await supabase.auth.signOut();
   }
+  // La cookie de actividad también es de la sesión: al cerrar no queda
+  // rastro de la última visita (y un próximo login no hereda un timestamp
+  // viejo que expiraría la sesión nueva al instante).
+  await clearAdminActivityCookie();
   redirect(ADMIN_LOGIN_PATH);
 }
 

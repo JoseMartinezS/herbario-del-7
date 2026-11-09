@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Panel admin (F2.2): protección con middleware + Supabase Auth.
+ * Panel admin (F2.2): protección con middleware + Supabase Auth, y el
+ * aviso de sesión cerrada por inactividad (Polish del panel).
  *
  * CI corre esta suite SIN credenciales reales y SIN env vars de Supabase:
  * el middleware es fail-closed, así que sin sesión (con o sin config) el
@@ -19,6 +20,9 @@ test.describe("Panel admin (protegido)", () => {
     const respuesta = await request.get("/admin", { maxRedirects: 0 });
     expect(respuesta.status()).toBe(307);
     expect(respuesta.headers()["location"]).toContain("/admin/login");
+    // El redirect SIN sesión no lleva ?expired: ese aviso es exclusivo de
+    // la expiración por inactividad (regresión del Polish del panel).
+    expect(respuesta.headers()["location"]).not.toContain("expired=");
   });
 
   test("GET /admin/productos/nuevo sin sesión responde 307 hacia /admin/login", async ({
@@ -71,6 +75,32 @@ test.describe("Panel admin (protegido)", () => {
     await expect(
       page.getByRole("button", { name: "Entrar" }),
     ).toBeEnabled();
+  });
+
+  test("GET /admin/login?expired=1 responde 200 con el aviso de inactividad", async ({
+    page,
+  }) => {
+    // Lo que ve el dueño cuando el middleware cierra su sesión tras 5 horas
+    // sin tocar el panel: la puerta con un aviso amable arriba del form.
+    const respuesta = await page.goto("/admin/login?expired=1");
+    expect(respuesta?.status()).toBe(200);
+    await expect(
+      page.getByText("Tu sesión se cerró por inactividad. Vuelve a entrar para continuar."),
+    ).toBeVisible();
+    // El aviso no estorba el flujo: el form sigue ahí, operativo.
+    await expect(page.getByLabel("Correo electrónico")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Entrar" })).toBeEnabled();
+  });
+
+  test("el aviso de inactividad solo aparece con expired=1 exacto (basura no avisa)", async ({
+    page,
+  }) => {
+    // Cualquier valor raro en ?expired= es ruido de URL, no un aviso.
+    await page.goto("/admin/login?expired=sesion");
+    await expect(
+      page.getByText(/se cerró por inactividad/i),
+    ).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Entrar" })).toBeEnabled();
   });
 
   test("las páginas de admin se marcan noindex para buscadores", async ({
