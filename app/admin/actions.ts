@@ -463,6 +463,10 @@ export async function updateProductAction(
                 featured: final.data.featured,
                 status: final.data.status,
                 // position tampoco se toca en edición (se asigna al crear).
+                // La tabla no tiene trigger de UPDATE: la app escribe la
+                // fecha de edición (la lista del panel la usa para
+                // orden=editados).
+                updated_at: new Date().toISOString(),
               })
               .eq("id", actual.id);
             if (updateError !== null) {
