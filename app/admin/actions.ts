@@ -192,7 +192,7 @@ const MENSAJE_STATUS =
   "El estado del producto solo puede ser publicado o retirado.";
 
 /** Campos que tipea el dueño (los mismos del formulario compartido). */
-export interface ProductFieldsInput {
+interface ProductFieldsInput {
   name: string;
   shortDescription: string;
   description: string;

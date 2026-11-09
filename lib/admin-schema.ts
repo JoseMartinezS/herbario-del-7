@@ -20,7 +20,7 @@ import { productSchema } from "./schema";
  */
 
 /** Estados de una ficha: publicado (visible) o retirado (reversible). */
-export const PRODUCT_STATUSES = ["published", "retired"] as const;
+const PRODUCT_STATUSES = ["published", "retired"] as const;
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
 /** Ruta local del JSON original (la misma regex de lib/schema.ts). */
@@ -64,11 +64,7 @@ export const adminProductFieldsSchema = adminProductBase.omit({
   status: true,
 });
 
-export type AdminProductFields = z.infer<typeof adminProductFieldsSchema>;
-
 export const adminProductSchema = adminProductBase.refine(
   (value) => value.price === null || value.price <= MAX_PRICE,
   { message: "El precio máximo es $99,999,999.", path: ["price"] },
 );
-
-export type AdminProductInput = z.infer<typeof adminProductSchema>;
