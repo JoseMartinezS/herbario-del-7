@@ -12,7 +12,9 @@ import {
   adminProductsHref,
   filterAdminProducts,
   hasActiveFilters,
+  normalizeSearchText,
   parseAdminFilters,
+  type AdminFilters,
   type AdminOrderFilter,
   type AdminStatusFilter,
 } from "@/lib/admin-filters";
@@ -21,7 +23,7 @@ import { logoutAction } from "./actions";
 
 /**
  * Interior del panel admin (F2.3): la LISTA del catálogo, con búsqueda,
- * filtros y orden (Polish del panel).
+ * filtros y orden.
  *
  * Server component con sesión garantizada por el middleware — el chequeo
  * de abajo es defensivo (F2.2): sin sesión a la puerta, pase lo que
@@ -37,7 +39,14 @@ import { logoutAction } from "./actions";
  * lib/admin-filters.ts: una vista armada se recarga, guarda o comparte
  * tal cual, y no hay estado de cliente que sincronizar. Los controles
  * son <Link> a URLs que arma el mismo helper + un formulario GET por
- * la búsqueda — todo funciona también sin JavaScript.
+ * la búsqueda.
+ *
+ * 0 JS — la pieza 0-JS del sitio: el panel de filtros es un
+ * <details>/<summary> nativo (CSS-only) que se abre solo server-side
+ * (open={hasActiveFilters}) cuando la URL trae filtros, y en desktop se
+ * acomoda como sidebar lateral vía grid responsivo condicionado por
+ * has-[details[open]]. Sin JavaScript la página arma, filtra, ordena y
+ * colapsa exactamente igual.
  *
  * Mobile-first: el dueño edita desde el teléfono en el mostrador. Cada
  * fila es un <Link> entero (tap generoso) y los chips son tocables.
@@ -133,6 +142,26 @@ function EtiquetaGrupo({
   );
 }
 
+/**
+ * Cuenta cuántos filtros que OCULTAN productos están activos, para el
+ * badge "(N)" del botón del panel colapsable. Suma los mismos predicados
+ * que `hasActiveFilters` (lib/admin-filters.ts): texto, estado, categoría
+ * y destacados. El orden NO cuenta (reordenar no filtra).
+ *
+ * Vive acá y no en lib/admin-filters.ts (módulo firmado, no se toca):
+ * es presentación del panel, no lógica de filtros. Los predicados son
+ * los mismos que cubren los tests de hasActiveFilters, así que su
+ * corrección se transita desde ahí.
+ */
+function contarFiltrosActivos(filtros: AdminFilters): number {
+  return (
+    (normalizeSearchText(filtros.search) !== "" ? 1 : 0) +
+    (filtros.status !== "todos" ? 1 : 0) +
+    (filtros.category !== "todas" ? 1 : 0) +
+    (filtros.featuredOnly ? 1 : 0)
+  );
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -168,6 +197,8 @@ export default async function AdminPage({
   const visibles =
     products === null ? [] : filterAdminProducts(products, filtros);
   const hayFiltros = hasActiveFilters(filtros);
+  // Cuenta de filtros activos para el badge del botón (el orden no cuenta).
+  const filtrosActivos = contarFiltrosActivos(filtros);
   // El conteo de retirados solo interesa cuando la lista los incluye.
   const retiradosVisibles =
     filtros.status === "todos"
@@ -175,44 +206,45 @@ export default async function AdminPage({
       : 0;
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-      {/* Doble filete dorado: la firma visual de la familia /admin. */}
-      <div className="rounded-2xl border-2 border-gold-600/60 p-1.5">
-        <div className="rounded-xl p-5 ring-1 ring-inset ring-gold-600/40 sm:p-7">
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-balance text-green-800 sm:text-3xl">
-            Panel de administración
-          </h1>
-          <p className="mt-3 max-w-prose text-pretty text-sm leading-relaxed text-green-800/85 sm:text-base">
-            Hola,{" "}
-            <span className="font-semibold break-all" translate="no">
-              {user.email ?? "tu cuenta"}
-            </span>
-            . Este es el catálogo del mostrador: toca un producto para
-            editarlo.
-          </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              href="/admin/productos/nuevo"
-              className="inline-flex items-center justify-center rounded-full bg-terracotta-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-terracotta-700"
+    <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      {/* Header compacto (F1): barra fina de 1 línea, no card ni filete
+          dorado. Título chico + email sutil + acciones inline. El panel
+          de filtros vive abajo en un <details> CSS-only (F2). */}
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-sand pb-3">
+        <h1 className="font-display text-lg font-semibold tracking-tight text-green-800">
+          Panel admin
+        </h1>
+        {user.email != null ? (
+          <span
+            className="hidden text-sm text-green-800/55 sm:inline"
+            translate="no"
+          >
+            {user.email}
+          </span>
+        ) : null}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/productos/nuevo"
+            className="inline-flex items-center justify-center rounded-full bg-terracotta-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-700"
+          >
+            Nuevo producto
+          </Link>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full border border-green-300 bg-transparent px-4 py-2.5 text-sm font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
             >
-              Nuevo producto
-            </Link>
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="inline-flex w-full items-center justify-center rounded-full border border-green-300 bg-transparent px-6 py-3 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50 sm:w-auto"
-              >
-                Cerrar sesión
-              </button>
-            </form>
-          </div>
+              Cerrar sesión
+            </button>
+          </form>
         </div>
-      </div>
+      </header>
 
+      {/* Banner ?ok= (feedback tras guardar) — debajo del header compacto. */}
       {mensajeOk !== null ? (
         <div
           role="status"
-          className="mt-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3.5 text-pretty text-sm leading-relaxed text-green-800"
+          className="mt-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3.5 text-pretty text-sm leading-relaxed text-green-800"
         >
           <IconLeaf className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
           <p>{mensajeOk}</p>
@@ -222,7 +254,7 @@ export default async function AdminPage({
       {falloCarga ? (
         <div
           role="alert"
-          className="mt-6 rounded-xl border border-terracotta-300 bg-terracotta-50 px-4 py-4 text-pretty text-sm leading-relaxed text-terracotta-900"
+          className="mt-4 rounded-xl border border-terracotta-300 bg-terracotta-50 px-4 py-4 text-pretty text-sm leading-relaxed text-terracotta-900"
         >
           <p className="font-semibold">
             No pudimos cargar el catálogo desde Supabase.
@@ -240,7 +272,7 @@ export default async function AdminPage({
           </p>
         </div>
       ) : products !== null && products.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-sand bg-white/50 px-6 py-12 text-center sm:py-16">
+        <div className="mt-4 rounded-2xl border border-dashed border-sand bg-white/50 px-6 py-12 text-center sm:py-16">
           <p className="font-display text-xl font-semibold text-green-800">
             Todavía no hay productos
           </p>
@@ -257,228 +289,287 @@ export default async function AdminPage({
         </div>
       ) : products !== null ? (
         <>
-          {/* Barra de búsqueda, filtros y orden. Todo navega por URL
-              (links + form GET): sin JavaScript queda igual de funcional
-              y una vista armada se puede recargar o guardar. Los chips
-              ocultos viajan como inputs hidden del form para que una
-              búsqueda no pierda el resto de la vista. */}
-          <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-sand/80 bg-white/70 p-4 sm:p-5">
-            <form method="get" action="/admin" role="search" className="flex gap-2">
-              <label htmlFor="q-panel" className="sr-only">
-                Buscar producto
-              </label>
-              <input
-                id="q-panel"
-                name="q"
-                type="search"
-                autoComplete="off"
-                inputMode="search"
-                enterKeyHint="search"
-                placeholder="Buscar por nombre o palabra…"
-                defaultValue={filtros.search}
-                className="min-w-0 flex-1 rounded-md border border-sand bg-white px-3.5 py-2.5 text-base text-green-900 transition-colors placeholder:text-green-800/40 focus:border-green-600"
-              />
-              {filtros.status !== "todos" ? (
-                <input type="hidden" name="estado" value={filtros.status} />
-              ) : null}
-              {filtros.category !== "todas" ? (
-                <input type="hidden" name="categoria" value={filtros.category} />
-              ) : null}
-              {filtros.featuredOnly ? (
-                <input type="hidden" name="destacados" value="1" />
-              ) : null}
-              {filtros.order !== "posicion" ? (
-                <input type="hidden" name="orden" value={filtros.order} />
-              ) : null}
-              <button
-                type="submit"
-                className="inline-flex shrink-0 items-center justify-center rounded-full border border-green-300 bg-transparent px-5 py-2.5 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
-              >
-                Buscar
-              </button>
-            </form>
+          {/* Panel de filtros colapsable (CSS-only <details>/<summary>, F2):
+              se abre solo server-side cuando la URL trae filtros
+              (open={hayFiltros}). El <summary> es el botón "Filtros (N)"
+              con badge server-side (F3). Todo navega por URL (links +
+              form GET): sin JavaScript queda igual de funcional y una
+              vista armada se puede recargar o guardar. Los chips ocultos
+              viajan como inputs hidden del form para que una búsqueda no
+              pierda el resto de la vista.
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <EtiquetaGrupo id="etiqueta-estado">Estado</EtiquetaGrupo>
-              <ul
-                aria-labelledby="etiqueta-estado"
-                className="flex flex-wrap gap-2"
+              Desktop abierto: grid 2-col (aside izq fijo + contenido der),
+              vía has-[details[open]]. Desktop cerrado: la lista ocupa
+              todo el ancho (el :has no matchea → grid 1-col). Mobile:
+              aside inline vertical arriba de la lista (no hay ancho para
+              sidebar). */}
+          <div className="mt-4 lg:grid lg:items-start lg:gap-6 lg:has-[details[open]]:grid-cols-[18rem_minmax(0,1fr)]">
+            <details open={hayFiltros} className="group">
+              <summary
+                className={
+                  "inline-flex cursor-pointer list-none items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors [&::-webkit-details-marker]:hidden " +
+                  (filtrosActivos > 0
+                    ? "border-terracotta-400 bg-terracotta-50 text-terracotta-900 hover:bg-terracotta-100"
+                    : "border-sand bg-white text-green-800 hover:border-gold-400 hover:bg-gold-50")
+                }
               >
-                {OPCIONES_ESTADO.map((opcion) => (
-                  <li key={opcion.valor}>
-                    <Chip
-                      href={adminProductsHref({
-                        ...filtros,
-                        status: opcion.valor,
-                      })}
-                      activo={filtros.status === opcion.valor}
+                <svg
+                  className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
+                  viewBox="0 0 12 12"
+                  aria-hidden="true"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 4.5 6 7.5 9 4.5" />
+                </svg>
+                <span>Filtros</span>
+                {filtrosActivos > 0 ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta-600 px-1.5 text-xs font-bold leading-none text-white"
                     >
-                      {opcion.etiqueta}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
-              <Chip
-                href={adminProductsHref({
-                  ...filtros,
-                  featuredOnly: !filtros.featuredOnly,
-                })}
-                activo={filtros.featuredOnly}
-              >
-                <IconStar className="h-3.5 w-3.5 shrink-0" />
-                Solo destacados
-              </Chip>
-            </div>
+                      {filtrosActivos}
+                    </span>
+                    <span className="sr-only">
+                      {" "}
+                      ({filtrosActivos}{" "}
+                      {filtrosActivos === 1
+                        ? "filtro activo"
+                        : "filtros activos"}
+                      )
+                    </span>
+                  </>
+                ) : null}
+              </summary>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <EtiquetaGrupo id="etiqueta-categoria">Categoría</EtiquetaGrupo>
-              <ul
-                aria-labelledby="etiqueta-categoria"
-                className="flex flex-wrap gap-2"
+              <aside
+                aria-label="Filtros del catálogo"
+                className="mt-3 flex flex-col gap-4 rounded-2xl border border-sand/80 bg-white/70 p-4 sm:p-5"
               >
-                <li>
+                <form method="get" action="/admin" role="search" className="flex gap-2">
+                  <label htmlFor="q-panel" className="sr-only">
+                    Buscar producto
+                  </label>
+                  <input
+                    id="q-panel"
+                    name="q"
+                    type="search"
+                    autoComplete="off"
+                    inputMode="search"
+                    enterKeyHint="search"
+                    placeholder="Buscar por nombre o palabra…"
+                    defaultValue={filtros.search}
+                    className="min-w-0 flex-1 rounded-md border border-sand bg-white px-3.5 py-2.5 text-base text-green-900 transition-colors placeholder:text-green-800/40 focus:border-green-600"
+                  />
+                  {filtros.status !== "todos" ? (
+                    <input type="hidden" name="estado" value={filtros.status} />
+                  ) : null}
+                  {filtros.category !== "todas" ? (
+                    <input type="hidden" name="categoria" value={filtros.category} />
+                  ) : null}
+                  {filtros.featuredOnly ? (
+                    <input type="hidden" name="destacados" value="1" />
+                  ) : null}
+                  {filtros.order !== "posicion" ? (
+                    <input type="hidden" name="orden" value={filtros.order} />
+                  ) : null}
+                  <button
+                    type="submit"
+                    className="inline-flex shrink-0 items-center justify-center rounded-full border border-green-300 bg-transparent px-5 py-2.5 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
+                  >
+                    Buscar
+                  </button>
+                </form>
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <EtiquetaGrupo id="etiqueta-estado">Estado</EtiquetaGrupo>
+                  <ul
+                    aria-labelledby="etiqueta-estado"
+                    className="flex flex-wrap gap-2"
+                  >
+                    {OPCIONES_ESTADO.map((opcion) => (
+                      <li key={opcion.valor}>
+                        <Chip
+                          href={adminProductsHref({
+                            ...filtros,
+                            status: opcion.valor,
+                          })}
+                          activo={filtros.status === opcion.valor}
+                        >
+                          {opcion.etiqueta}
+                        </Chip>
+                      </li>
+                    ))}
+                  </ul>
                   <Chip
-                    href={adminProductsHref({ ...filtros, category: "todas" })}
-                    activo={filtros.category === "todas"}
+                    href={adminProductsHref({
+                      ...filtros,
+                      featuredOnly: !filtros.featuredOnly,
+                    })}
+                    activo={filtros.featuredOnly}
                   >
-                    Todas
+                    <IconStar className="h-3.5 w-3.5 shrink-0" />
+                    Solo destacados
                   </Chip>
-                </li>
-                {CATEGORIES.map((category) => (
-                  <li key={category}>
-                    <Chip
-                      href={adminProductsHref({ ...filtros, category })}
-                      activo={filtros.category === category}
-                    >
-                      {CATEGORY_INFO[category].name}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                </div>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <EtiquetaGrupo id="etiqueta-orden">Orden</EtiquetaGrupo>
-              <ul aria-labelledby="etiqueta-orden" className="flex flex-wrap gap-2">
-                {OPCIONES_ORDEN.map((opcion) => (
-                  <li key={opcion.valor}>
-                    <Chip
-                      href={adminProductsHref({ ...filtros, order: opcion.valor })}
-                      activo={filtros.order === opcion.valor}
-                    >
-                      {opcion.etiqueta}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <p className="text-sm font-medium text-green-800/70">
-              {hayFiltros
-                ? `${visibles.length} de ${products.length} ${
-                    products.length === 1 ? "producto" : "productos"
-                  }`
-                : `${products.length} ${
-                    products.length === 1 ? "producto" : "productos"
-                  }`}
-              {retiradosVisibles > 0
-                ? ` · ${retiradosVisibles} ${
-                    retiradosVisibles === 1 ? "retirado" : "retirados"
-                  } (ocultos del sitio)`
-                : ""}
-            </p>
-            {hayFiltros ? (
-              <Link
-                href={adminProductsHref(DEFAULT_ADMIN_FILTERS)}
-                className="text-sm font-semibold text-green-800 underline underline-offset-4 transition-colors hover:text-green-700"
-              >
-                Limpiar filtros
-              </Link>
-            ) : null}
-          </div>
-
-          {visibles.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-sand bg-white/50 px-6 py-10 text-center sm:py-12">
-              <p className="font-display text-xl font-semibold text-green-800">
-                Ningún producto coincide
-              </p>
-              <p className="mx-auto mt-2 max-w-md text-pretty text-sm leading-relaxed text-green-800/70">
-                Prueba con otra palabra, o quita los filtros para volver a ver
-                todo el catálogo.
-              </p>
-              <Link
-                href={adminProductsHref(DEFAULT_ADMIN_FILTERS)}
-                className="mt-5 inline-flex items-center justify-center rounded-full border border-green-300 bg-transparent px-6 py-3 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
-              >
-                Limpiar filtros
-              </Link>
-            </div>
-          ) : (
-            <ul className="mt-4 flex flex-col gap-3">
-              {visibles.map((product) => (
-                <li key={product.id}>
-                  <Link
-                    href={`/admin/productos/${product.id}`}
-                    aria-label={`Editar ${product.name}`}
-                    className="flex items-center gap-3.5 rounded-xl border border-sand/80 bg-white p-3 transition-colors hover:border-gold-400 sm:gap-4 sm:p-4"
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <EtiquetaGrupo id="etiqueta-categoria">Categoría</EtiquetaGrupo>
+                  <ul
+                    aria-labelledby="etiqueta-categoria"
+                    className="flex flex-wrap gap-2"
                   >
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-cream-dark sm:h-20 sm:w-20">
-                      <Image
-                        src={product.image}
-                        alt=""
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <h2 className="font-display text-base font-semibold leading-snug text-green-800 sm:text-lg">
-                          {product.name}
-                        </h2>
-                        {product.featured ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-gold-300 bg-gold-100 px-2 py-0.5 text-xs font-medium text-gold-900">
-                            <IconStar className="h-3 w-3" />
-                            Destacado
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-xs text-green-800/70 sm:text-sm">
-                        {CATEGORY_INFO[product.category].name}
-                        <span className="text-green-800/50"> · #{product.position}</span>
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {product.status === "published" ? (
-                          <span className="rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                            Publicado
-                          </span>
-                        ) : (
-                          <span className="rounded-full border border-sand bg-cream-dark px-2 py-0.5 text-xs font-medium text-green-800/70">
-                            Retirado
-                          </span>
-                        )}
-                        {product.price !== null ? (
-                          <span className="text-sm font-semibold text-gold-800">
-                            ${product.price} MXN
-                          </span>
-                        ) : (
-                          <span className="text-sm text-green-800/50">
-                            —
-                            <span className="sr-only">
-                              {" "}
-                              sin precio (se consulta por WhatsApp)
-                            </span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <li>
+                      <Chip
+                        href={adminProductsHref({ ...filtros, category: "todas" })}
+                        activo={filtros.category === "todas"}
+                      >
+                        Todas
+                      </Chip>
+                    </li>
+                    {CATEGORIES.map((category) => (
+                      <li key={category}>
+                        <Chip
+                          href={adminProductsHref({ ...filtros, category })}
+                          activo={filtros.category === category}
+                        >
+                          {CATEGORY_INFO[category].name}
+                        </Chip>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <EtiquetaGrupo id="etiqueta-orden">Orden</EtiquetaGrupo>
+                  <ul aria-labelledby="etiqueta-orden" className="flex flex-wrap gap-2">
+                    {OPCIONES_ORDEN.map((opcion) => (
+                      <li key={opcion.valor}>
+                        <Chip
+                          href={adminProductsHref({ ...filtros, order: opcion.valor })}
+                          activo={filtros.order === opcion.valor}
+                        >
+                          {opcion.etiqueta}
+                        </Chip>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </aside>
+            </details>
+
+            <div className="mt-4 lg:mt-0">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <p className="text-sm font-medium text-green-800/70">
+                  {hayFiltros
+                    ? `${visibles.length} de ${products.length} ${
+                        products.length === 1 ? "producto" : "productos"
+                      }`
+                    : `${products.length} ${
+                        products.length === 1 ? "producto" : "productos"
+                      }`}
+                  {retiradosVisibles > 0
+                    ? ` · ${retiradosVisibles} ${
+                        retiradosVisibles === 1 ? "retirado" : "retirados"
+                      } (ocultos del sitio)`
+                    : ""}
+                </p>
+                {hayFiltros ? (
+                  <Link
+                    href={adminProductsHref(DEFAULT_ADMIN_FILTERS)}
+                    className="text-sm font-semibold text-green-800 underline underline-offset-4 transition-colors hover:text-green-700"
+                  >
+                    Limpiar filtros
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+                ) : null}
+              </div>
+
+              {visibles.length === 0 ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-sand bg-white/50 px-6 py-10 text-center sm:py-12">
+                  <p className="font-display text-xl font-semibold text-green-800">
+                    Ningún producto coincide
+                  </p>
+                  <p className="mx-auto mt-2 max-w-md text-pretty text-sm leading-relaxed text-green-800/70">
+                    Prueba con otra palabra, o quita los filtros para volver a ver
+                    todo el catálogo.
+                  </p>
+                  <Link
+                    href={adminProductsHref(DEFAULT_ADMIN_FILTERS)}
+                    className="mt-5 inline-flex items-center justify-center rounded-full border border-green-300 bg-transparent px-6 py-3 text-base font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
+                  >
+                    Limpiar filtros
+                  </Link>
+                </div>
+              ) : (
+                <ul className="mt-4 flex flex-col gap-3">
+                  {visibles.map((product) => (
+                    <li key={product.id}>
+                      <Link
+                        href={`/admin/productos/${product.id}`}
+                        aria-label={`Editar ${product.name}`}
+                        className="flex items-center gap-3.5 rounded-xl border border-sand/80 bg-white p-3 transition-colors hover:border-gold-400 sm:gap-4 sm:p-4"
+                      >
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-cream-dark sm:h-20 sm:w-20">
+                          <Image
+                            src={product.image}
+                            alt=""
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <h2 className="font-display text-base font-semibold leading-snug text-green-800 sm:text-lg">
+                              {product.name}
+                            </h2>
+                            {product.featured ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-gold-300 bg-gold-100 px-2 py-0.5 text-xs font-medium text-gold-900">
+                                <IconStar className="h-3 w-3" />
+                                Destacado
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-green-800/70 sm:text-sm">
+                            {CATEGORY_INFO[product.category].name}
+                            <span className="text-green-800/50"> · #{product.position}</span>
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {product.status === "published" ? (
+                              <span className="rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                                Publicado
+                              </span>
+                            ) : (
+                              <span className="rounded-full border border-sand bg-cream-dark px-2 py-0.5 text-xs font-medium text-green-800/70">
+                                Retirado
+                              </span>
+                            )}
+                            {product.price !== null ? (
+                              <span className="text-sm font-semibold text-gold-800">
+                                ${product.price} MXN
+                              </span>
+                            ) : (
+                              <span className="text-sm text-green-800/50">
+                                —
+                                <span className="sr-only">
+                                  {" "}
+                                  sin precio (se consulta por WhatsApp)
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </>
       ) : null}
     </section>
