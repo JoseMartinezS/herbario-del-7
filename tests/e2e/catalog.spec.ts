@@ -83,3 +83,33 @@ test.describe("Catálogo", () => {
     await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(2);
   });
 });
+
+test.describe("Paginación del catálogo", () => {
+  test("con una sola página de catálogo no aparece el nav de paginación", async ({
+    page,
+  }) => {
+    // products.json trae 15 productos y la página sirve 18 por página:
+    // una sola página → el nav es null (no hay a dónde ir). Igual que
+    // los tests de arriba, este depende del catálogo sembrado — cuando
+    // crezca a 19+ productos, acá y en las 15 tarjetas se ajusta junto.
+    const respuesta = await page.goto("/catalogo");
+    expect(respuesta?.status).toBe(200);
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
+    await expect(
+      page.getByRole("navigation", { name: "Paginación" }),
+    ).toHaveCount(0);
+  });
+
+  test("?page fuera de rango responde 200 y renderiza la última página válida", async ({
+    page,
+  }) => {
+    // El clamp: ?page=2 con una sola página renderiza la página 1
+    // (idéntica) — sin "sin coincidencias" falso por un link viejo.
+    const respuesta = await page.goto("/catalogo?page=2");
+    expect(respuesta?.status).toBe(200);
+    await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
+    await expect(
+      page.getByRole("navigation", { name: "Paginación" }),
+    ).toHaveCount(0);
+  });
+});

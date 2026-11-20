@@ -8,8 +8,15 @@ import {
   getProductsByCategory,
 } from "@/lib/products";
 import CategoryFilter from "@/components/CategoryFilter";
+import Paginacion from "@/components/Paginacion";
 import ProductCard from "@/components/ProductCard";
 import SprigDivider from "@/components/SprigDivider";
+import {
+  buildPageHref,
+  CATALOGO_POR_PAGINA,
+  paginar,
+  parsePageParam,
+} from "@/lib/pagination";
 
 const CATALOGO_DESCRIPTION =
   "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, cuidado natural y sahumerios e inciensos, con asesoría tradicional en Frontera, Coahuila.";
@@ -46,13 +53,16 @@ function parseCategory(value: string | string[] | undefined): Category | null {
 }
 
 interface CatalogoPageProps {
-  searchParams: Promise<{ categoria?: string | string[] }>;
+  searchParams: Promise<{
+    categoria?: string | string[];
+    page?: string | string[];
+  }>;
 }
 
 export default async function CatalogoPage({
   searchParams,
 }: CatalogoPageProps) {
-  const { categoria } = await searchParams;
+  const { categoria, page } = await searchParams;
   const active = parseCategory(categoria);
 
   const allProducts = await getProducts();
@@ -60,6 +70,18 @@ export default async function CatalogoPage({
   const products = active
     ? await getProductsByCategory(active)
     : allProducts;
+
+  // Paginación (18 por página): el catálogo actual aún no llega a dos
+  // páginas, así que el nav no se renderiza (null) — esto prepara el
+  // crecimiento sin mostrar controles vacíos. El clamp vive dentro de
+  // paginar: un ?page=99 renderiza la última página real, y tocar un
+  // chip de categoría vuelve a la página 1 (los chips arman su URL sin
+  // page, convención no-defaults).
+  const { itemsPagina, totalPaginas, paginaActual } = paginar(
+    products,
+    parsePageParam(page),
+    CATALOGO_POR_PAGINA,
+  );
 
   const countLabel = active
     ? `${products.length} ${
@@ -100,7 +122,7 @@ export default async function CatalogoPage({
 
         {products.length > 0 ? (
           <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {itemsPagina.map((product) => (
               <li key={product.slug} className="h-full">
                 <ProductCard product={product} />
               </li>
@@ -139,6 +161,23 @@ export default async function CatalogoPage({
             </p>
           </div>
         )}
+
+        {/* Paginación del listado (18 por página): null mientras el
+            catálogo no llegue a dos páginas — prepara el crecimiento
+            sin mostrar controles vacíos. El href base replica el
+            patrón inline de los chips: /catalogo pelado o
+            ?categoria=<slug>, y page solo viaja desde la 2. */}
+        <Paginacion
+          paginaActual={paginaActual}
+          totalPaginas={totalPaginas}
+          buildHref={(p) =>
+            buildPageHref(
+              active ? `/catalogo?categoria=${active}` : "/catalogo",
+              p,
+            )
+          }
+          className="mt-10"
+        />
       </section>
     </>
   );
