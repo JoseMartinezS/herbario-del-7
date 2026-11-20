@@ -13,7 +13,7 @@ import { CATEGORY_STYLES } from "./ProductCard";
  */
 
 /** Entrada de categoría con conteo (forma de getCategoriesWithCounts). */
-export interface CategoryFilterOption {
+interface CategoryFilterOption {
   category: Category;
   name: string;
   count: number;

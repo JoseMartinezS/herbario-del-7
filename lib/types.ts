@@ -13,11 +13,22 @@ export const CATEGORIES = [
   "lociones",
   "capsulas-y-suplementos",
   "cuidado-personal",
-  "otros",
+  "sahumerios-e-inciensos",
 ] as const;
 
 /** Unión de slugs de categoría válidos. */
 export type Category = (typeof CATEGORIES)[number];
+
+/**
+ * Type guard de categoría: ¿el valor (p. ej. crudo de la base de datos)
+ * es uno de los slugs válidos? Protege el render público: una categoría
+ * inventada haría crashing en CATEGORY_INFO[category].
+ */
+export function isCategory(value: unknown): value is Category {
+  return (
+    typeof value === "string" && (CATEGORIES as readonly string[]).includes(value)
+  );
+}
 
 /** Etiqueta legible y descripción corta por categoría. */
 export const CATEGORY_INFO: Record<
@@ -52,23 +63,27 @@ export const CATEGORY_INFO: Record<
     description:
       "Jabones, shampoos y productos naturales para piel y cabello.",
   },
-  otros: {
-    name: "Otros",
+  "sahumerios-e-inciensos": {
+    name: "Sahumerios e Inciensos",
     description:
-      "Copal, inciensos y otros artículos para tus rituales y tradiciones.",
+      "Copal, resinas e inciensos para sahumar la casa y acompañar tus peticiones.",
   },
 };
 
 /**
- * Producto del catálogo.
+ * Producto del catálogo (una línea de producto del mostrador).
  *
  * - `description`: dos párrafos cortos separados por un salto de línea doble
  *   (`\n\n`), listos para renderizar con `whitespace-pre-line` o split.
- * - `image`: ruta pública del SVG ilustrativo (p. ej. `/images/products/copal-blanco.svg`).
+ * - `image`: imagen del producto. En modo JSON local es una ruta pública
+ *   (`.jpg`/`.jpeg`/`.webp` o SVG de transición, p. ej.
+ *   `/images/products/veladoras-parafina.jpg`); en modo Supabase es la
+ *   URL absoluta del bucket público de Storage. El JSON-LD y next/image
+ *   soportan ambas formas (ver lib/product-schema.ts y next.config.ts).
  * - `price`: precio en pesos mexicanos (MXN). `null` significa
  *   "Consulta el precio por WhatsApp".
- *   TODO: reemplazar con precios reales — los precios cargados en
- *   content/products.json son ejemplos editables.
+ *   TODO: cargar el número cuando el dueño confirme precios — hoy todo el
+ *   catálogo se publica con `null`.
  */
 export interface Product {
   slug: string;

@@ -46,6 +46,20 @@ export interface BreadcrumbSchema {
   }>;
 }
 
+/**
+ * URL absoluta de la imagen para el JSON-LD.
+ * Dual-mode (F2.1): en modo Supabase `product.image` ya es una URL
+ * absoluta del bucket público de Storage (se usa tal cual); en modo JSON
+ * local es una ruta pública y se prefija con el dominio del sitio.
+ * Google exige URL absoluta en el schema: nunca salen rutas relativas.
+ */
+function productImage(product: Product, siteUrl: string): string {
+  if (product.image.startsWith("http")) {
+    return product.image;
+  }
+  return `${siteUrl}${product.image}`;
+}
+
 /** URL absoluta de la ficha: {siteUrl}/catalogo/{slug}. */
 function productUrl(product: Product, siteUrl: string): string {
   return `${siteUrl}/catalogo/${product.slug}`;
@@ -71,8 +85,9 @@ export function buildProductSchema(
     // La línea corta (máx. 140) es la misma de los metadatos de la ficha;
     // la descripción larga con \n\n no aporta al snippet del buscador.
     description: product.shortDescription,
-    // El SVG se sirve desde public/: la ruta pública del JSON, absoluta.
-    image: `${siteUrl}${product.image}`,
+    // Absoluta (Supabase Storage) tal cual; ruta pública local prefijada
+    // con el dominio del sitio. Ver productImage.
+    image: productImage(product, siteUrl),
     url,
     // Etiqueta legible ("Veladoras"), no el slug de la URL.
     category: CATEGORY_INFO[product.category].name,

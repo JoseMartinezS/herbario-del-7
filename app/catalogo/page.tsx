@@ -12,7 +12,7 @@ import ProductCard from "@/components/ProductCard";
 import SprigDivider from "@/components/SprigDivider";
 
 const CATALOGO_DESCRIPTION =
-  "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, y cuidado natural, con asesoría tradicional en Frontera, Coahuila.";
+  "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, cuidado natural y sahumerios e inciensos, con asesoría tradicional en Frontera, Coahuila.";
 
 export const metadata: Metadata = {
   title: "Catálogo",
@@ -23,6 +23,15 @@ export const metadata: Metadata = {
     url: "/catalogo",
   },
 };
+
+/**
+ * ISR: regenera la página cada hora para reflejar cambios del catálogo (en
+ * modo Supabase) sin redeployar; en F2.3 pasará a revalidación bajo
+ * demanda. Nota: esta página lee `searchParams` (el filtro por categoría),
+ * así que Next la renderiza por request y este revalidate queda declarado
+ * para cuando el filtro se mueva a cliente.
+ */
+export const revalidate = 3600;
 
 /**
  * Valida el query param `categoria` contra las categorías reales.
@@ -46,10 +55,10 @@ export default async function CatalogoPage({
   const { categoria } = await searchParams;
   const active = parseCategory(categoria);
 
-  const allProducts = getProducts();
-  const categoriesWithCounts = getCategoriesWithCounts();
+  const allProducts = await getProducts();
+  const categoriesWithCounts = await getCategoriesWithCounts();
   const products = active
-    ? getProductsByCategory(active)
+    ? await getProductsByCategory(active)
     : allProducts;
 
   const countLabel = active
@@ -69,8 +78,8 @@ export default async function CatalogoPage({
         <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-green-800/80">
           La vitrina del mostrador ordenada por familias: hierbas y preparados
           de siempre, veladoras para cada intención, aguas y riegos, lociones,
-          cápsulas y cuidado natural. Filtra por categoría o recorre todo de
-          corrido.
+          cápsulas, cuidado natural y sahumerios e inciensos. Filtra por
+          categoría o recorre todo de corrido.
         </p>
       </header>
 
