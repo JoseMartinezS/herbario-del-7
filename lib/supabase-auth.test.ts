@@ -16,7 +16,7 @@ import {
  *
  * Lo que NO está acá, a propósito:
  *
- * - `middleware.ts`: corre en edge runtime, habla con el servidor de Auth
+ * - `proxy.ts` (antes `middleware.ts`): habla con el servidor de Auth
  *   (getUser) y está acoplado a NextRequest/NextResponse. No hay forma
  *   limpia de testearlo unitario sin mockear media internet; su contrato
  *   real (redirect a /admin/login con ?next=, y ?expired=1 al expirar)

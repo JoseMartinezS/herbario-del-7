@@ -16,7 +16,7 @@ import {
  * Protege TODA la familia `/admin/*` menos la puerta `/admin/login`, que
  * es pública (es el formulario, no el interior). El matcher de abajo está
  * acotado a `/admin` a propósito: ninguna ruta pública del sitio pasa por
- * acá, así que este middleware no puede romper la tienda.
+ * acá, así que este proxy no puede romper la tienda.
  *
  * Patrón oficial de @supabase/ssr para Next:
  *
@@ -41,10 +41,11 @@ import {
  * `?expired=1`. Si no expiró, el timestamp se renueva en el response —
  * la ventana es deslizante: 5 horas desde la ÚLTIMA actividad.
  *
- * NOTA de runtime: el middleware corre en Edge. Este archivo NO importa
- * `lib/supabase-auth-server.ts` (que usa `next/headers`, inexistente en
- * edge) — solo el módulo puro `lib/supabase-auth.ts` y @supabase/ssr,
- * diseñado para este runtime.
+ * NOTA de runtime: desde Next 16 la convención se llama `proxy` y corre
+ * en runtime Node.js (la vieja `middleware` corría en Edge). Este
+ * archivo NO importa `lib/supabase-auth-server.ts` (usa `next/headers`,
+ * que solo existe en Server Components y Server Actions, no en esta
+ * fase) — solo el módulo puro `lib/supabase-auth.ts` y @supabase/ssr.
  */
 
 /** La puerta no exige sesión: es el único pase directo de la familia. */
@@ -71,7 +72,7 @@ function redirigirAlLogin(
   return NextResponse.redirect(url);
 }
 
-export async function middleware(
+export async function proxy(
   request: NextRequest,
 ): Promise<NextResponse> {
   // 1. La puerta de entrada es pública; el resto de /admin/* exige sesión.
@@ -187,7 +188,7 @@ export async function middleware(
  * SOLO la familia /admin. El patrón `:path*` cubre tanto `/admin` a secas
  * como cualquier subruta (`/admin/productos`, `/admin/lo-que-venga`).
  * Ninguna ruta pública (/, /catalogo, /ubicacion, /contacto, /nosotros,
- * legales) matchea: el middleware ni se ejecuta para la tienda.
+ * legales) matchea: el proxy ni se ejecuta para la tienda.
  */
 export const config = {
   matcher: ["/admin", "/admin/:path*"],

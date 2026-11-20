@@ -92,7 +92,7 @@ app/                    Rutas (App Router)
   sitemap.ts            Genera /sitemap.xml
   robots.ts             Genera /robots.txt
   opengraph-image.tsx   Imagen Open Graph 1200×630 del sitio
-middleware.ts           El portero: protege /admin/* (menos /admin/login) con la sesión de Supabase
+proxy.ts                El portero: protege /admin/* (menos /admin/login) con la sesión de Supabase
 components/             Componentes de UI (Header, Footer, ProductCard, LegalPage, JsonLd, íconos…)
 content/                Contenido editable del negocio y del catálogo
   business.ts           Fuente única de verdad del NAP y horarios
@@ -249,8 +249,8 @@ El panel es la **oficina del mostrador en el navegador**: el dueño crea, edita,
 
 ### Cómo funciona el acceso
 
-- **`middleware.ts`** protege toda la familia `/admin/*` menos `/admin/login`. Sin sesión válida → redirect 307 a la puerta, guardando la URL original en `?next=` para volver después de entrar. Si faltan las env vars de Supabase el portero **cierra igual** (fail-closed): el panel jamás queda abierto por accidente.
-- **`/admin/login`** es la puerta: correo + contraseña. El login corre entero en el servidor (Server Action): la contraseña no llega al bundle del cliente y la cookie de sesión es **httpOnly** (ningún script del navegador puede leerla). La sesión se refresca sola en el middleware cuando el token está por vencer.
+- **`proxy.ts`** protege toda la familia `/admin/*` menos `/admin/login`. Sin sesión válida → redirect 307 a la puerta, guardando la URL original en `?next=` para volver después de entrar. Si faltan las env vars de Supabase el portero **cierra igual** (fail-closed): el panel jamás queda abierto por accidente.
+- **`/admin/login`** es la puerta: correo + contraseña. El login corre entero en el servidor (Server Action): la contraseña no llega al bundle del cliente y la cookie de sesión es **httpOnly** (ningún script del navegador puede leerla). La sesión se refresca sola en el proxy cuando el token está por vencer.
 - **`/admin`** es el interior: la lista de TODO el catálogo (publicado y retirado) con foto, familia, precio, destacado y estado. Toca una ficha para editarla; "Nuevo producto" abre la creación.
 - Todo `/admin` sigue **noindex** y fuera del sitemap; `robots.txt` lo bloquea.
 
