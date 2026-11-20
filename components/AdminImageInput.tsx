@@ -57,6 +57,10 @@ export default function AdminImageInput({
 
   // El objectURL del preview se revoca al cambiar/desmontar (el blob del
   // archivo lo retiene React en el estado, no la URL).
+  /* eslint-disable react-hooks/set-state-in-effect -- falso positivo: el
+     objectURL es un recurso EXTERNO; este effect sincroniza `previewUrl`
+     con él y su cleanup lo revoca (el ciclo de vida correcto para blob
+     URLs). La regla no distingue esto de un setState en cascada. */
   useEffect(() => {
     if (file === null) {
       setPreviewUrl(null);
@@ -66,6 +70,7 @@ export default function AdminImageInput({
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function onChooseFile(
     event: React.ChangeEvent<HTMLInputElement>,

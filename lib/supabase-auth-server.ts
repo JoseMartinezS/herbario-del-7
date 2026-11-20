@@ -12,9 +12,9 @@ import {
  * Cliente de Supabase para el LADO SERVIDOR de App Router (F2.2).
  *
  * A diferencia de `lib/supabase-auth.ts` (puro, compartido con el
- * middleware), este módulo sí usa `next/headers` y solo puede usarse desde
- * Server Actions y Server Components — nunca desde `middleware.ts` (edge
- * runtime, donde `next/headers` no existe) ni desde componentes cliente.
+ * proxy), este módulo sí usa `next/headers` y solo puede usarse desde
+ * Server Actions y Server Components — nunca desde `proxy.ts` (la fase
+ * de request no expone `next/headers`) ni desde componentes cliente.
  *
  * Patrón oficial de @supabase/ssr para Next App Router: el cliente se crea
  * NUEVO en cada request (el storage de cookies es por-request) y la sesión

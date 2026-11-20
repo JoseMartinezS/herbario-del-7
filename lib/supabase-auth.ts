@@ -7,9 +7,10 @@ import type { CookieOptionsWithName } from "@supabase/ssr";
  * crea clientes: es el contrato que comparten los tres contextos de auth,
  * con distinto runtime cada uno:
  *
- * - `middleware.ts` (edge runtime): lee la config y las opciones de cookie,
- *   pero NO puede importar `next/headers` (no existe en middleware). Por eso
- *   este archivo debe mantenerse libre de imports de framework.
+ * - `proxy.ts` (runtime Node.js desde Next 16; antes `middleware.ts` en
+ *   edge): lee la config y las opciones de cookie, pero NO puede importar
+ *   `next/headers` (solo existe en Server Actions/RSC). Por eso este
+ *   archivo debe mantenerse libre de imports de framework.
  * - `app/admin/actions.ts` y las páginas admin (runtime de Node, Server
  *   Actions/RSC): usan este contrato vía `lib/supabase-auth-server.ts`,
  *   que sí puede usar `next/headers`.

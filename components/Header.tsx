@@ -36,10 +36,15 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Al navegar, el menú móvil se cierra solo.
-  useEffect(() => {
+  // Al navegar, el menú móvil se cierra solo. El pathname cambia "desde
+  // afuera" (como una prop): el ajuste se hace DURANTE el render con el
+  // patrón documentado de React para reaccionar a cambios de props sin
+  // needing an effect (react.dev/learn/you-might-not-need-an-effect).
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMenuOpen(false);
-  }, [pathname]);
+  }
 
   // Escape cierra el menú (restaura el foco al botón).
   useEffect(() => {
