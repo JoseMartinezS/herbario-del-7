@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   description: BUSINESS.description,
 };
 
+/**
+ * ISR: regenera esta página cada hora para reflejar cambios del catálogo
+ * (en modo Supabase) sin redeployar. En F2.3 pasará a revalidación bajo
+ * demanda al guardar desde el panel.
+ */
+export const revalidate = 3600;
+
 // TODO: reemplazar con testimonios reales de clientes (pedir autorización
 // antes de publicar nombre o inicial).
 const TESTIMONIALS = [
@@ -79,9 +86,9 @@ function SealMedallion() {
   );
 }
 
-export default function HomePage() {
-  const featured = getFeaturedProducts();
-  const categoriesWithCounts = getCategoriesWithCounts();
+export default async function HomePage() {
+  const featured = await getFeaturedProducts();
+  const categoriesWithCounts = await getCategoriesWithCounts();
 
   return (
     <>

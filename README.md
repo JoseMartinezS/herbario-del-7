@@ -6,7 +6,7 @@ Sitio web de **Herbario Del 7**, herbolario de Frontera, Coahuila (México): hie
 
 - **Negocio:** herbolario físico establecido en Presidente Carranza #119, Col. Guadalupe Borja, Frontera, Coahuila. Atiende de lunes a sábado en dos turnos (9:00–14:00 y 15:00–21:00) y domingo de 10:00 a 13:00.
 - **Objetivo del sitio:** dar presencia digital al negocio y pasar la **verificación de negocio de Meta** (Business Verification), que exige que el sitio publique información consistente del negocio: nombre, dirección, teléfono y correo (los datos NAP).
-- **Alcance actual:** catálogo informativo + contacto. **No hay e-commerce** (sin carrito, sin pagos), **no hay backend** (el formulario de contacto abre WhatsApp con el mensaje armado; no se guarda nada en servidores propios) y **no hay cookies de rastreo**. Los planes de admin y marketing están documentados abajo, no implementados.
+- **Alcance actual:** catálogo informativo + contacto. **No hay e-commerce** (sin carrito, sin pagos), **no hay backend** (el formulario de contacto abre WhatsApp con el mensaje armado; no se guarda nada en servidores propios) y **no hay cookies de rastreo**. El panel de administración (`/admin`) ya tiene login protegido (F2.2) y gestión completa del catálogo desde el navegador (F2.3): crear, editar, retirar/publicar, fotos y destacados — sin tocar git. Los planes de marketing están documentados abajo.
 
 ## Stack y requisitos
 
@@ -26,11 +26,15 @@ npm run dev
 
 El sitio queda en `http://localhost:3000`.
 
-### Variable de entorno
+### Variables de entorno
 
 | Variable | Descripción |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | URL pública del sitio, **sin slash final** (p. ej. `https://herbariodel7.com`). Alimenta el `metadataBase`, el JSON-LD, el sitemap, el robots y las URLs canónicas. Actualízala al conectar el dominio real. |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Opcional.** URL del proyecto de Supabase. Sin esta variable (y la de abajo) el catálogo se lee de `content/products.json`, el modo original, y el panel admin queda cerrado (no hay sesión posible). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Opcional.** Publishable/anon key de Supabase (la pública, jamás la `service_role`). Con las dos variables presentes, el catálogo se lee de Supabase con fallback al JSON local, y el login del panel admin funciona con la cuenta del dashboard. |
+
+Las dos variables de Supabase están documentadas (y vacías, como plantilla) en `.env.example`; la guía para activarlas está en [`supabase/README.md`](supabase/README.md) y en la sección de abajo.
 
 ## Scripts
 
@@ -51,8 +55,8 @@ Antes de entregar cambios, corre `npx tsc --noEmit` y `npm run lint`: deben sali
 
 | Comando | Qué cubre |
 | --- | --- |
-| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod y generadores JSON-LD de la ficha de producto. |
-| `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos) y accesibilidad con axe (WCAG 2.0 A/AA). |
+| `npm test` | Suite unitaria (Vitest, jsdom): validación del ContactForm, composición del mensaje de WhatsApp, integridad de `business.ts` y `products.json`, reglas del schema zod, generadores JSON-LD de la ficha de producto, la capa de catálogo dual (mapeo de filas de Supabase, filtrado por status y fallback al JSON local), la lógica pura del login admin (config de env vars, saneo del `?next=` y traducción de errores de Supabase) y la lógica pura del panel CRUD (generación de slugs, helpers del bucket de Storage, compresión de fotos, schema del panel y mapeo de filas admin). |
+| `npm run test:e2e` | E2E con Playwright **contra el dev server**: rutas principales y 404 personalizada, navegación (header, breadcrumb, menú móvil), filtro del catálogo por categoría, flujo de contacto de punta a punta, botón flotante de WhatsApp en todas las páginas, SEO servido (sitemap.xml, robots.txt, JSON-LD, títulos únicos), accesibilidad con axe (WCAG 2.0 A/AA) y la protección del panel admin (redirect a `/admin/login` sin sesión para el panel, la creación y la edición; formulario de la puerta y noindex; el smoke test de login real se activa solo con credenciales, ver abajo). |
 | `npm run test:e2e:prod` | La misma suite E2E **contra el build de producción**: el script hace `npm run build` y después sirve con `npm run start`. Lo corre el dueño o CI al publicar; no hace falta en el día a día. |
 
 Notas sobre la suite E2E (`tests/e2e/`):
@@ -78,16 +82,23 @@ app/                    Rutas (App Router)
   privacidad/           Política de privacidad
   terminos/             Términos y condiciones
   cookies/              Política de cookies
-  admin/                Placeholder noindex del panel de administración (futuro)
+  admin/                Panel de administración (protegido: ver sección propia)
+    page.tsx            Interior post-login: la lista del catálogo (F2.3)
+    login/page.tsx      La puerta: formulario de acceso (noindex)
+    actions.ts          Server Actions: login/logout + crear/guardar producto (con subida de foto)
+    productos/nuevo/    Crear un producto (slug y posición automáticos)
+    productos/[id]/     Editar un producto existente
   not-found.tsx         Página 404
   sitemap.ts            Genera /sitemap.xml
   robots.ts             Genera /robots.txt
   opengraph-image.tsx   Imagen Open Graph 1200×630 del sitio
+middleware.ts           El portero: protege /admin/* (menos /admin/login) con la sesión de Supabase
 components/             Componentes de UI (Header, Footer, ProductCard, LegalPage, JsonLd, íconos…)
 content/                Contenido editable del negocio y del catálogo
   business.ts           Fuente única de verdad del NAP y horarios
-  products.json         Catálogo de productos
-lib/                    Lógica: acceso al catálogo, esquema zod, tipos, URL del sitio
+  products.json         Catálogo de productos (snapshot semilla/respaldo)
+lib/                    Lógica: acceso al catálogo (JSON/Supabase), autenticación admin, esquema zod, tipos, URL del sitio
+supabase/               Migración del catálogo a Supabase (SQL + guía de activación)
 tests/
   setup.ts              Setup global de Vitest (jest-dom)
   e2e/                  Specs E2E de Playwright (excluidos de Vitest)
@@ -96,43 +107,104 @@ public/images/          Logo y una ilustración SVG por producto
 
 ## Cómo editar el contenido
 
-### Productos → `content/products.json`
+### Productos → el panel `/admin` (recomendado) o `content/products.json`
+
+**Si Supabase está activo** (las dos env vars presentes, como en producción), la forma de editar el catálogo es **el panel de administración** desde el navegador o el teléfono: crear, editar, retirar/publicar, cambiar fotos y marcar destacados — sin tocar git ni archivos. Ver la sección [«Panel de administración»](#panel-de-administración-admin).
+
+El archivo `content/products.json` queda como **snapshot semilla y respaldo** (no lo borres): el sitio cae a él si Supabase no responde, y en modo local (sin env vars) sigue siendo la fuente.
 
 Cada producto tiene estos campos:
 
 | Campo | Descripción |
 | --- | --- |
-| `slug` | Identificador en kebab-case; es la URL (`/catalogo/<slug>`) |
+| `slug` | Identificador en kebab-case; es la URL (`/catalogo/<slug>`). En el panel se genera solo a partir del nombre |
 | `name` | Nombre visible |
 | `shortDescription` | Una línea (máx. 140 caracteres) para tarjetas y metadatos |
 | `description` | Dos párrafos separados por una línea en blanco (`\n\n`) |
 | `category` | Una de las categorías de `lib/types.ts` |
 | `price` | **Número** = precio visible en pesos (MXN). **`null`** = se muestra "Consulta el precio por WhatsApp" |
-| `image` | Ruta pública de la imagen, p. ej. `/images/products/ruda-fresca.svg` |
+| `image` | Ruta pública de la imagen (p. ej. `/images/products/veladoras-parafina.jpg`) o URL del bucket de Storage |
 | `featured` | Opcional; `true` lo muestra en los destacados del inicio |
 
-> **Ojo con los precios:** los $45 y $60 cargados hoy son **EJEMPLOS de referencia**, no precios reales. La página de términos deja claro que los precios del sitio son referenciales y se confirman al momento del pedido. Sustitúyelos por precios reales (o usa `null` para "consulta por WhatsApp").
+> **Ojo con los precios:** hoy todo el catálogo se publica con `null` ("consulta el precio por WhatsApp") porque los precios se confirman al momento del pedido. La página de términos deja claro que los precios del sitio son referenciales. Carga el número cuando el dueño lo confirme.
+
+> **¿Edits al JSON o a Supabase?** Si el sitio está en modo JSON local (sin las env vars de Supabase), editá este archivo y deployá. Si ya está activo Supabase, los productos se editan en la tabla del dashboard y este JSON queda como respaldo — ver la sección [«Catálogo: JSON local vs Supabase»](#catálogo-json-local-vs-supabase-doble-modo).
 
 ### Datos del negocio → `content/business.ts`
 
 Es la **única fuente de verdad** del NAP (nombre, dirección, teléfono) y de los horarios. Header, Footer, páginas de contacto/ubicación, metadatos y el JSON-LD leen de aquí: **cambia el dato una vez y se actualiza en todo el sitio**. Nunca dupliques estos valores en otro archivo.
 
-### Ilustraciones por fotos reales → `public/images/products/`
+### Fotos del catálogo → `public/images/products/`
 
-Las fichas usan ilustraciones SVG (una por producto, con el nombre del slug). Para pasar a fotos reales:
+Cada línea de producto lleva una **foto real del mostrador** (JPG, ~90 KB, fondo blanco), nombrada con el slug exacto de su ficha (p. ej. `veladoras-parafina.jpg`), o una ilustración SVG de transición mientras llega la foto (`hierbas.svg` es la única pendiente).
 
-1. Saca fotos cuadradas, idealmente **800×800 px o más**, en JPG o WebP, con fondo limpio y buena luz.
-2. Sustituye el archivo en `public/images/products/` **manteniendo el nombre exacto** (p. ej. `ruda-fresca.jpg` en lugar de `ruda-fresca.svg`).
+Para reponer o mejorar una foto:
+
+1. Saca la foto cuadrada, idealmente **800×800 px o más**, en JPG o WebP, con fondo limpio y buena luz.
+2. Guárdala en `public/images/products/` **con el nombre del slug** (p. ej. `hierbas.jpg` para la ficha `hierbas`).
 3. Actualiza el campo `image` del producto en `content/products.json` con la nueva extensión.
 
-Nota técnica: el validador del catálogo (`lib/schema.ts`) hoy solo acepta imágenes `.svg` en esa carpeta; para usar `.jpg`/`.webp` hay que ajustar esa expresión regular (es un cambio de una línea). Mientras tanto, la regla es esa.
+Nota técnica: el validador del catálogo (`lib/schema.ts`) acepta imágenes `.svg`, `.jpg`, `.jpeg` y `.webp` dentro de `/images/products/`, en minúsculas y nombradas igual que el slug.
+
+## Catálogo: JSON local vs Supabase (doble modo)
+
+Desde la fase 2.1 el sitio puede leer el catálogo de **dos fuentes**, decidido
+solo por variables de entorno. `content/products.json` dejó de ser la única
+fuente, pero **sigue en el repo como snapshot semilla y respaldo** — no lo
+borres aunque Supabase esté activo.
+
+| Modo | Cuándo | Fuente |
+| --- | --- | --- |
+| **JSON local** (original) | Sin las env vars de Supabase | `content/products.json`, validado con zod |
+| **Supabase con fallback** | Con `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Tabla `products` de Supabase (`lib/supabase-catalog.ts`) |
+
+La regla de oro del diseño: **el sitio nunca se cae por culpa de Supabase**.
+Toda lectura remota va envuelta en try/catch con timeout: si el fetch falla,
+responde con error o devuelve un catálogo vacío/malformado, el sitio cae
+automáticamente al JSON local y deja un `console.warn` en los logs de Vercel
+para diagnosticarlo. Las filas retiradas (`status = 'retired'`) o malformadas
+no se sirven al público, y tampoco tumban el resto del catálogo.
+
+Detalles técnicos del modo Supabase:
+
+- **Lectura server-side únicamente** (RSC, `generateStaticParams`, sitemap):
+  nada de Supabase llega al bundle del cliente. Se usa **fetch directo a la
+  REST API** (`/rest/v1/products?...`) en vez del SDK oficial: para una
+  lectura pública de una tabla, PostgREST resuelve columnas, filtro y orden
+  por URL, y el SDK no aporta nada que se use (a cambio de una dependencia
+  más y un bundle más pesado).
+- **ISR**: home, `/catalogo` y las fichas declaran `revalidate = 3600`
+  (regeneración horaria). `generateStaticParams` sigue pre-renderizando las
+  15 fichas en el build **en ambos modos** — el fallback al JSON garantiza
+  las semillas aunque el build corra sin env vars (como en CI).
+- **Orden del catálogo**: la tabla tiene una columna `position` que conserva
+  el orden curado del JSON (1 = primero); el sitio pide las filas ordenadas
+  por ella.
+- El JSON-LD de cada ficha acepta `image` absoluta (bucket de Storage) o
+  ruta local; `next.config.ts` declara el host de Storage como patrón de
+  imagen remota **solo cuando la env var está presente**.
+
+### Activar Supabase (en este orden)
+
+1. **Correr la migración**: `supabase/migration.sql` en el SQL Editor del
+   dashboard (crea tabla, permisos, bucket y las 15 filas). Guía completa en
+   [`supabase/README.md`](supabase/README.md).
+2. **Subir las 15 imágenes** al bucket `products` de Storage (mismos
+   nombres de archivo que hoy: ver lista en `supabase/README.md`).
+3. **Configurar las env vars** `NEXT_PUBLIC_SUPABASE_URL` y
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` en Vercel (Settings → Environment
+   Variables; los valores salen de Project Settings → API).
+4. **Redeployar** en Vercel.
+
+Desactivarlo es al revés y más simple: quitar (o vaciar) las dos variables y
+redeployar — el sitio vuelve al JSON local tal como estaba.
 
 ## SEO: qué hay y dónde
 
 - **Metadatos por página** (`title` + `description` en español, títulos únicos; el layout define la plantilla `… | Herbario Del 7` y el `metadataBase`).
 - **JSON-LD** (`components/JsonLd.tsx`, montado en `app/layout.tsx`): schema.org `Store` con nombre, teléfono, correo, dirección, horarios por turno y redes. Sale de `content/business.ts`.
 - **JSON-LD por ficha de producto** (`components/ProductJsonLd.tsx`, montado en `app/catalogo/[slug]/page.tsx`): schema.org `Product` (con `offers` en MXN solo si el producto tiene precio) y `BreadcrumbList` (Inicio › Catálogo › Producto). Los generadores son funciones puras en `lib/product-schema.ts`, testeadas con Vitest.
-- **Sitemap** (`app/sitemap.ts` → `/sitemap.xml`): incluye las 8 rutas fijas y las fichas de los 10 productos. `/admin` queda fuera.
+- **Sitemap** (`app/sitemap.ts` → `/sitemap.xml`): incluye las 8 rutas fijas y las fichas de los 15 productos. `/admin` queda fuera.
 - **robots** (`app/robots.ts` → `/robots.txt`): permite todo salvo `/admin`.
 - **Open Graph** (`app/opengraph-image.tsx`): imagen 1200×630 con la identidad del sitio; Next la aplica a todas las páginas.
 - Todo lo anterior se construye sobre `NEXT_PUBLIC_SITE_URL`.
@@ -161,13 +233,82 @@ Google Search Console es la herramienta gratuita de Google para saber cómo te e
 
 > **Nota:** la indexación tarda días — a veces semanas — en reflejarse; no te preocupes si al principio el sitio no aparece en Google. Tener el **Google Business Profile** del negocio verificado también ayuda: Google cruza esos datos y favorece el descubrimiento local en Frontera y alrededores.
 
-## Panel de administración (futuro, no implementado)
+## Panel de administración (`/admin`)
 
-`/admin` es hoy un placeholder público de sola lectura y `noindex`. El plan cuando se implemente:
+El panel es la **oficina del mostrador en el navegador**: el dueño crea, edita, retira y publica las fichas del catálogo **desde el teléfono**, con foto, precio y familia — sin tocar git, sin deploys. Desde F2.3 la gestión es completa.
 
-- CRUD de productos: crear, editar y retirar fichas con foto, precio y categoría, validado con el mismo esquema zod de `lib/schema.ts`.
-- Marcar/desmarcar destacados para el inicio.
-- Acceso protegido con autenticación, solo para personal del herbolario (middleware + login; hoy no hay ninguna credencial en el proyecto).
+- **Acceso:** protegido con Supabase Auth (F2.2). Solo hay **UNA cuenta** (la del personal del herbolario): no existe registro público ni "olvidé mi contraseña" en el sitio — la cuenta se administra desde el dashboard de Supabase.
+- **Qué se puede hacer:**
+  - **Crear** fichas (`/admin/productos/nuevo`): la dirección (slug) se arma sola a partir del nombre (con preview en vivo) y la posición en el catálogo se asigna sola (última). La foto es obligatoria y se comprime en el navegador antes de subir.
+  - **Editar** cualquier ficha (toca un producto en la lista): nombre, familia, precio (o "consulta por WhatsApp" dejándolo vacío), descripciones, foto, destacar en el inicio.
+  - **Retirar/Publicar** (el interruptor de estado): retirar esconde la ficha del catálogo público **sin borrarla** — es reversible, con confirmación leve al retirar.
+- **Qué NO se puede hacer (a propósito):**
+  - **Borrar físicamente una ficha.** No existe el borrado en el panel: retirar es la operación (reversible, sin 404s accidentales para URLs ya indexadas). Si algún día hace falta borrar de verdad, es desde el dashboard de Supabase (Table Editor).
+  - **Cambiar el slug** de una ficha existente: la URL `/catalogo/<slug>` ya está indexada en buscadores; cambiarla la rompería. El slug solo se genera al crear.
+  - **Reordenar a mano** (position): se asigna automáticamente al crear (último lugar). El orden curado original se conserva.
+
+### Cómo funciona el acceso
+
+- **`middleware.ts`** protege toda la familia `/admin/*` menos `/admin/login`. Sin sesión válida → redirect 307 a la puerta, guardando la URL original en `?next=` para volver después de entrar. Si faltan las env vars de Supabase el portero **cierra igual** (fail-closed): el panel jamás queda abierto por accidente.
+- **`/admin/login`** es la puerta: correo + contraseña. El login corre entero en el servidor (Server Action): la contraseña no llega al bundle del cliente y la cookie de sesión es **httpOnly** (ningún script del navegador puede leerla). La sesión se refresca sola en el middleware cuando el token está por vencer.
+- **`/admin`** es el interior: la lista de TODO el catálogo (publicado y retirado) con foto, familia, precio, destacado y estado. Toca una ficha para editarla; "Nuevo producto" abre la creación.
+- Todo `/admin` sigue **noindex** y fuera del sitemap; `robots.txt` lo bloquea.
+
+La autenticación usa las **mismas dos env vars** que el catálogo (`NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`) — no hay variables nuevas.
+
+### Las fotos: compresión, subida y reemplazo
+
+El flujo de la foto está diseñado para que el catálogo cargue rápido **siempre**, sin depender de transforms de imagen (el plan free de Supabase no los incluye):
+
+1. **Compresión en el navegador** (antes de subir): la foto del teléfono (3–10 MB) se reescala a máx. 1200 px de lado mayor y se exporta a WebP calidad 0.8 (~100–300 KB típicos). Las ilustraciones SVG se suben tal cual (recomprimir un vector solo lo estropea). Si el navegador no exporta WebP (iOS viejo), cae a JPEG con fondo blanco.
+2. **Subida por Server Action**: el archivo comprimido viaja al servidor del sitio y de ahí al bucket `products` de Storage con la sesión del dueño. La foto JAMÁS se sube desde el navegador directo a Supabase: la CSP del sitio (`connect-src 'self'`) queda intacta y no hay cliente browser de Supabase. El límite del cuerpo de las actions se subió a 10 MB (el techo del bucket) en `next.config.ts`.
+3. **Nombre versionado**: `{slug}-{timestamp}.webp`. Al reemplazar la foto, la URL cambia (timestamp nuevo), así que la caché del CDN y del visitante **no puede** seguir sirviendo la foto vieja.
+4. **Reemplazo sin huérfanos**: al cambiar la foto, tras guardar la ficha se borra del bucket el archivo anterior — pero SOLO si era de NUESTRO bucket (una ruta local del repo o una URL externa no se toca).
+5. La URL pública resultante (`https://<proyecto>.supabase.co/storage/v1/object/public/products/<archivo>`) se guarda en la columna `image` de la fila.
+
+### Al guardar, el sitio se actualiza en segundos
+
+Cada mutation (crear, guardar, retirar, publicar) marca las rutas afectadas para regeneración inmediata (ISR bajo demanda con `revalidatePath`): la portada, el catálogo, la ficha editada y el propio panel. El público ve el cambio **al refrescar, sin deploy**.
+
+**Limitación conocida — el sitemap:** `revalidatePath` no regenera `/sitemap.xml`, así que una ficha **nueva** tarda en aparecer ahí hasta el próximo deploy (las fichas editadas no cambian de URL, así que no les afecta). No es grave: Google descubre la ficha nueva igual por los enlaces internos del catálogo y la portada. Si algún día importa, la solución es revalidar por tag o mover el sitemap a un route handler con caché corta.
+
+**Nota técnica — retirados y la policy de lectura:** la policy `products_select_publico` de la tabla permite leer TODAS las filas a la key anon, **incluidas las retiradas** (`using (true)`, sin filtro de status). No rompe nada: el sitio filtra `status = 'published'` en código (`lib/supabase-catalog.ts`), que es donde debe vivir el filtro. Queda documentado como decisión: si algún día se quisiera cerrar en la base, sería un `using (status = 'published')` para `anon` en un cambio de SQL — el panel ya lee con la sesión autenticada, así que no lo afectaría.
+
+### Crear la cuenta (ya existe una)
+
+La cuenta actual se creó desde el dashboard. Si algún día hay que crear otra o cambiar algo:
+
+1. Entra al dashboard del proyecto en [supabase.com](https://supabase.com/dashboard) → **Authentication → Users → Add user**.
+2. Marca **"Auto Confirm User"** (o confírmala después: ver abajo).
+3. Anota el correo y la contraseña en un lugar seguro (no en este repo).
+
+### Si el login falla con "Tu cuenta todavía no está confirmada"
+
+Eso es el error **"Email not confirmed"** de Supabase: la cuenta existe pero nunca se confirmó (pasa cuando se creó sin "Auto Confirm User"). El sitio no tiene flujo de verificación de email — una sola cuenta no lo necesita — así que se resuelve a mano:
+
+1. Dashboard → **Authentication → Users**.
+2. En la fila del usuario, abre el menú (⋮) → **"Confirm user"**.
+
+Listo: el login funciona en el intento siguiente, sin redeploy.
+
+### Si se olvida la contraseña
+
+Tampoco hay flujo de recuperación en el sitio (una sola cuenta, se administra por dashboard):
+
+1. Dashboard → **Authentication → Users**.
+2. En la fila del usuario, menú (⋮) → **"Send password recovery"** (llega un enlace al correo para definir una nueva) o **"Set new password"** (la cambias directo desde el dashboard).
+
+### Probar el acceso localmente
+
+El E2E de admin (`tests/e2e/admin.spec.ts`) valida sin credenciales que `/admin`, `/admin/productos/nuevo` y `/admin/productos/<id>` redirigen a la puerta y que el formulario responde. Para probar el login real de punta a punta:
+
+```powershell
+$env:ADMIN_EMAIL = "la cuenta del dashboard"
+$env:ADMIN_PASSWORD = "su contraseña"
+npx playwright test tests/e2e/admin.spec.ts
+```
+
+El smoke con sesión es **read-only a propósito**: `.env.local` apunta al mismo proyecto de Supabase que sirve el sitio en producción, así que un test que cree productos dejaría filas en la base real (y sin borrado físico, se quedarían). El smoke valida login → lista → abrir una ficha con el formulario prefilled → logout. El checklist manual del CRUD completo: crear una ficha de verdad (verla en `/catalogo`), editarla, reemplazarle la foto, retirarla y volver a publicarla.
 
 ## Fase 2 (futuro)
 

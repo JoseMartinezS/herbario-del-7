@@ -19,7 +19,7 @@ export const CATEGORY_STYLES: Record<Category, string> = {
   lociones: "border-terracotta-200 bg-terracotta-50 text-terracotta-800",
   "capsulas-y-suplementos": "border-gold-200 bg-gold-100 text-gold-800",
   "cuidado-personal": "border-green-200 bg-green-100 text-green-800",
-  otros: "border-gold-200 bg-gold-50 text-gold-800",
+  "sahumerios-e-inciensos": "border-gold-300 bg-gold-100 text-gold-900",
 };
 
 interface ProductCardProps {

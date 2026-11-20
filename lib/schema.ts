@@ -11,8 +11,12 @@ import { CATEGORIES } from "./types";
 /** kebab-case: minúsculas y números, separados por guiones. */
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** Ruta pública del SVG del producto, p. ej. /images/products/ruda-fresca.svg */
-const IMAGE_REGEX = /^\/images\/products\/[a-z0-9]+(?:-[a-z0-9]+)*\.svg$/;
+/**
+ * Ruta pública de la imagen del producto: foto real (.jpg/.jpeg/.webp) o
+ * ilustración SVG de transición, p. ej. /images/products/veladoras-parafina.jpg
+ */
+const IMAGE_REGEX =
+  /^\/images\/products\/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:svg|jpe?g|webp)$/;
 
 export const productSchema = z.object({
   slug: z
@@ -38,7 +42,10 @@ export const productSchema = z.object({
     .nullable(),
   image: z
     .string()
-    .regex(IMAGE_REGEX, "La imagen debe ser un SVG en /images/products/."),
+    .regex(
+      IMAGE_REGEX,
+      "La imagen debe ser un archivo .svg, .jpg, .jpeg o .webp dentro de /images/products/.",
+    ),
   featured: z.boolean().optional(),
 });
 

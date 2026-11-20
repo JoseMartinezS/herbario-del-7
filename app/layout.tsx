@@ -43,6 +43,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/images/logo.svg", type: "image/svg+xml" }],
   },
+  other: {
+    "facebook-domain-verification": "4yssxmgkufdp1o6sb20s0dpjv75l1a",
+  },
 };
 
 export const viewport: Viewport = {

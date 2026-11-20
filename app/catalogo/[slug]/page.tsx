@@ -23,16 +23,25 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ * ISR: cada ficha se pre-renderiza en el build (con generateStaticParams,
+ * en ambos modos) y se regenera cada hora para reflejar cambios del
+ * catálogo (en modo Supabase) sin redeployar. En F2.3 pasará a
+ * revalidación bajo demanda al guardar desde el panel.
+ */
+export const revalidate = 3600;
+
 /** Pre-renderiza la ficha de cada producto del catálogo. */
-export function generateStaticParams() {
-  return getProducts().map((product) => ({ slug: product.slug }));
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) {
     return { title: "Producto no encontrado" };
   }
@@ -49,7 +58,7 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) {
     notFound();
   }
@@ -61,13 +70,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   // Relacionados: primero la misma familia (máx. 3); si el producto es
   // único en su categoría, los destacados de la casa excluyendo el actual.
-  const sameCategory = getProductsByCategory(product.category)
+  const sameCategory = (await getProductsByCategory(product.category))
     .filter((item) => item.slug !== product.slug)
     .slice(0, 3);
   const related =
     sameCategory.length > 0
       ? sameCategory
-      : getFeaturedProducts()
+      : (await getFeaturedProducts())
           .filter((item) => item.slug !== product.slug)
           .slice(0, 3);
   const relatedHeading =

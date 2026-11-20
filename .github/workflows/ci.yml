@@ -23,7 +23,7 @@ jobs:
       # Node 22 + cache de dependencias (requiere package-lock.json,
       # que está versionado en el repo).
       - name: Configurar Node 22 con cache de npm
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
