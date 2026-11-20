@@ -93,7 +93,7 @@ test.describe("Paginación del catálogo", () => {
     // los tests de arriba, este depende del catálogo sembrado — cuando
     // crezca a 19+ productos, acá y en las 15 tarjetas se ajusta junto.
     const respuesta = await page.goto("/catalogo");
-    expect(respuesta?.status).toBe(200);
+    expect(respuesta?.status()).toBe(200);
     await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
     await expect(
       page.getByRole("navigation", { name: "Paginación" }),
@@ -106,7 +106,7 @@ test.describe("Paginación del catálogo", () => {
     // El clamp: ?page=2 con una sola página renderiza la página 1
     // (idéntica) — sin "sin coincidencias" falso por un link viejo.
     const respuesta = await page.goto("/catalogo?page=2");
-    expect(respuesta?.status).toBe(200);
+    expect(respuesta?.status()).toBe(200);
     await expect(page.locator(TARJETA_PRODUCTO)).toHaveCount(15);
     await expect(
       page.getByRole("navigation", { name: "Paginación" }),
