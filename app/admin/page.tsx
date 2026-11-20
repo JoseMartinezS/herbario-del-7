@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { IconLeaf, IconStar } from "@/components/icons";
+import Paginacion from "@/components/Paginacion";
 import { ADMIN_LOGIN_PATH } from "@/lib/supabase-auth";
 import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
 import { listAdminProducts, type AdminProduct } from "@/lib/admin-products";
@@ -18,6 +19,12 @@ import {
   type AdminOrderFilter,
   type AdminStatusFilter,
 } from "@/lib/admin-filters";
+import {
+  ADMIN_POR_PAGINA,
+  buildPageHref,
+  paginar,
+  parsePageParam,
+} from "@/lib/pagination";
 import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
 import { logoutAction } from "./actions";
 
@@ -196,6 +203,17 @@ export default async function AdminPage({
   // La lista que se muestra: filtrada y ordenada por los searchParams.
   const visibles =
     products === null ? [] : filterAdminProducts(products, filtros);
+  // Paginación (12 por página): `page` viaja FUERA de AdminFilters a
+  // propósito — el módulo firmado ignora parámetros desconocidos, así
+  // que los chips y la búsqueda no lo propagan y tocar cualquier filtro
+  // vuelve a la página 1 gratis. El clamp vive dentro de paginar: un
+  // ?page=99 renderiza la última página real de la vista, no un
+  // "sin coincidencias" falso.
+  const { itemsPagina, totalPaginas, paginaActual } = paginar(
+    visibles,
+    parsePageParam(params.page),
+    ADMIN_POR_PAGINA,
+  );
   const hayFiltros = hasActiveFilters(filtros);
   // Cuenta de filtros activos para el badge del botón (el orden no cuenta).
   const filtrosActivos = contarFiltrosActivos(filtros);
@@ -506,7 +524,7 @@ export default async function AdminPage({
                 </div>
               ) : (
                 <ul className="mt-4 flex flex-col gap-3">
-                  {visibles.map((product) => (
+                  {itemsPagina.map((product) => (
                     <li key={product.id}>
                       <Link
                         href={`/admin/productos/${product.id}`}
@@ -568,6 +586,17 @@ export default async function AdminPage({
                   ))}
                 </ul>
               )}
+
+              {/* Paginación de la vista filtrada (12 por página): null
+                  con una sola página o menos (0 visibles → 0 páginas).
+                  El contador de arriba sigue contando la vista COMPLETA
+                  filtrada, no la rebanada. */}
+              <Paginacion
+                paginaActual={paginaActual}
+                totalPaginas={totalPaginas}
+                buildHref={(p) => buildPageHref(adminProductsHref(filtros), p)}
+                className="mt-6"
+              />
             </div>
           </div>
         </>
