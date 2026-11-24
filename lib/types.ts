@@ -1,11 +1,14 @@
 /**
  * Tipos y constantes de dominio del catálogo de Herbario Del 7.
  *
- * CATEGORIES es la fuente de verdad de los slugs de categoría; coincide con
- * las claves de CATEGORY_INFO y con la validación de lib/schema.ts.
+ * Desde F2.5 las categorías son DATOS dinámicos: content/categories.json
+ * en modo local, tabla `categories` de Supabase en modo remoto (la fuente
+ * es lib/categories.ts). CATEGORIES queda como la SEMILLA de referencia
+ * —las 7 familias originales del mostrador— contra la que los tests fijan
+ * la coherencia de los archivos; ya NO es la lista vigente en runtime.
  */
 
-/** Slugs de categoría (también usados en las rutas del catálogo). */
+/** Slugs de las 7 categorías semilla (la lista vigente vive en datos). */
 export const CATEGORIES = [
   "veladoras",
   "hierbas-y-preparados",
@@ -16,59 +19,27 @@ export const CATEGORIES = [
   "sahumerios-e-inciensos",
 ] as const;
 
-/** Unión de slugs de categoría válidos. */
+/**
+ * Unión de los slugs de la SEMILLA. No describe la realidad runtime
+ * (puede haber categorías nuevas): es la llave de los estilos históricos
+ * de la semilla en lib/categories.ts y la referencia de los tests.
+ */
 export type Category = (typeof CATEGORIES)[number];
 
 /**
- * Type guard de categoría: ¿el valor (p. ej. crudo de la base de datos)
- * es uno de los slugs válidos? Protege el render público: una categoría
- * inventada haría crashing en CATEGORY_INFO[category].
+ * Categoría del catálogo tal como se lee de la fuente vigente
+ * (categories.json o la tabla `categories` de Supabase).
  */
-export function isCategory(value: unknown): value is Category {
-  return (
-    typeof value === "string" && (CATEGORIES as readonly string[]).includes(value)
-  );
+export interface Categoria {
+  /** Slug kebab-case: el de la URL (?categoria=<slug>) y el de la FK. */
+  slug: string;
+  /** Etiqueta legible ("Veladoras"): la que se muestra en la UI. */
+  nombre: string;
+  /** Descripción corta para la grilla de familias del home. */
+  descripcion: string;
+  /** Orden de exhibición (1 = primera). */
+  posicion: number;
 }
-
-/** Etiqueta legible y descripción corta por categoría. */
-export const CATEGORY_INFO: Record<
-  Category,
-  { name: string; description: string }
-> = {
-  veladoras: {
-    name: "Veladoras",
-    description:
-      "Veladoras de 7 días y aromáticas para acompañar tus peticiones y devociones.",
-  },
-  "hierbas-y-preparados": {
-    name: "Hierbas y preparados",
-    description:
-      "Hierbas frescas, tés y preparados tradicionales de la herbolaria mexicana.",
-  },
-  "aguas-y-riegos": {
-    name: "Aguas y riegos",
-    description:
-      "Aguas aromáticas y de riego para limpiar y armonizar tus espacios.",
-  },
-  lociones: {
-    name: "Lociones",
-    description: "Lociones y aguas de tocador elaboradas con hierbas.",
-  },
-  "capsulas-y-suplementos": {
-    name: "Cápsulas y suplementos",
-    description: "Cápsulas y suplementos naturales para tu rutina diaria.",
-  },
-  "cuidado-personal": {
-    name: "Cuidado personal",
-    description:
-      "Jabones, shampoos y productos naturales para piel y cabello.",
-  },
-  "sahumerios-e-inciensos": {
-    name: "Sahumerios e Inciensos",
-    description:
-      "Copal, resinas e inciensos para sahumar la casa y acompañar tus peticiones.",
-  },
-};
 
 /**
  * Producto del catálogo (una línea de producto del mostrador).
@@ -90,7 +61,12 @@ export interface Product {
   name: string;
   shortDescription: string;
   description: string;
-  category: Category;
+  /**
+   * Slug de la categoría (dinámica desde F2.5): la membresía se valida
+   * en runtime contra la lista vigente — la FK de la base en modo
+   * remoto, la validación cruzada de lib/categories.ts en modo local.
+   */
+  category: string;
   price: number | null;
   image: string;
   /** Marca el producto para la sección de destacados del home. */

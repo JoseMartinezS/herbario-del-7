@@ -14,13 +14,19 @@ import type { Product } from "@/lib/types";
  * solo los serializa. La ficha `Store` del negocio es global y vive
  * aparte en components/JsonLd.tsx: aquí no se duplica.
  */
-export default function ProductJsonLd({ product }: { product: Product }) {
+export default function ProductJsonLd({
+  product,
+  nombreCategoria,
+}: {
+  product: Product;
+  /** Etiqueta legible resuelta contra la lista vigente (nombreDeCategoria). */
+  nombreCategoria: string;
+}) {
   // El `<` se escapa a su secuencia unicode para que un valor malicioso
   // no pueda cerrar el <script> (práctica recomendada por Next.js).
-  const productJson = JSON.stringify(buildProductSchema(product, SITE_URL)).replace(
-    /</g,
-    "\\u003c",
-  );
+  const productJson = JSON.stringify(
+    buildProductSchema(product, SITE_URL, nombreCategoria),
+  ).replace(/</g, "\\u003c");
   const breadcrumbJson = JSON.stringify(
     buildBreadcrumbSchema(product, SITE_URL),
   ).replace(/</g, "\\u003c");

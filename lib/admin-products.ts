@@ -1,7 +1,6 @@
 import { isProductRow, type ProductRow } from "./supabase-catalog";
 import { createSupabaseAuthClient } from "./supabase-auth-server";
-import { isCategory } from "./types";
-import type { Category } from "./types";
+import { getCategoryList, slugsDeCategorias } from "./categories";
 import type { ProductStatus } from "./admin-schema";
 
 /**
@@ -59,7 +58,8 @@ export interface AdminProduct {
   name: string;
   shortDescription: string;
   description: string;
-  category: Category;
+  /** Slug de la categoría (dinámica desde F2.5; validada al leer filas). */
+  category: string;
   price: number | null;
   image: string;
   featured: boolean;
@@ -93,13 +93,16 @@ export function isAdminProductRow(row: unknown): row is AdminProductRow {
 
 /**
  * Mapea una fila VALIDADA a AdminProduct (snake → camel).
- * Devuelve null solo si la categoría no es de las 7 (lo demás ya quedó
- * garantizado por isAdminProductRow).
+ * Devuelve null solo si la categoría no está en la lista vigente (lo
+ * demás ya quedó garantizado por isAdminProductRow). La lista llega POR
+ * PARÁMETRO (F2.5: las categorías son datos): función pura, testeable
+ * con el Set que el llamador arme.
  */
 export function mapRowToAdminProduct(
   row: AdminProductRow,
+  categoriasValidas: ReadonlySet<string>,
 ): AdminProduct | null {
-  if (!isCategory(row.category)) {
+  if (!categoriasValidas.has(row.category)) {
     return null;
   }
   return {
@@ -135,8 +138,13 @@ export function calculateNextPosition(positions: number[]): number {
  * Las filas malformadas se descartan con warn — una fila mala no puede
  * tumbar el panel entero — pero a diferencia del catálogo público NO se
  * filtran las retired: el panel las muestra (retirar es reversible).
+ *
+ * La lista de categorías válidas se arma ANTES de mapear filas
+ * (getCategoryList → Set): los guards validan contra la fuente vigente,
+ * no contra un enum compilado (F2.5).
  */
 export async function listAdminProducts(): Promise<AdminProduct[]> {
+  const categoriasValidas = slugsDeCategorias(await getCategoryList());
   const supabase = await createSupabaseAuthClient();
   const { data, error } = await supabase
     .from("products")
@@ -155,10 +163,10 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
       );
       continue;
     }
-    const product = mapRowToAdminProduct(row);
+    const product = mapRowToAdminProduct(row, categoriasValidas);
     if (product === null) {
       console.warn(
-        `[panel] fila "${row.slug}" ignorada: categoría "${row.category}" fuera de las 7 del sitio.`,
+        `[panel] fila "${row.slug}" ignorada: categoría "${row.category}" no está en la lista de categorías.`,
       );
       continue;
     }
@@ -199,7 +207,10 @@ export async function getAdminProductById(
   if (data === null || !isAdminProductRow(data)) {
     return null;
   }
-  return mapRowToAdminProduct(data);
+  return mapRowToAdminProduct(
+    data,
+    slugsDeCategorias(await getCategoryList()),
+  );
 }
 
 /** ¿Ya existe una fila con ese slug? (chequeo de colisión al crear). */

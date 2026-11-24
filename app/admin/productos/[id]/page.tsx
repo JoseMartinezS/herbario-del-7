@@ -7,6 +7,7 @@ import { ADMIN_LOGIN_PATH } from "@/lib/supabase-auth";
 import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
 import { getAdminProductById } from "@/lib/admin-products";
 import type { AdminProduct } from "@/lib/admin-products";
+import { getCategoryList } from "@/lib/categories";
 
 /**
  * Editar un producto (F2.3): carga la fila por id y renderiza el mismo
@@ -18,6 +19,9 @@ import type { AdminProduct } from "@/lib/admin-products";
  * 404 pública del sitio: acá el contexto es el dueño, no un visitante.
  *
  * Sin sesión → a la puerta (defensivo, como toda la familia /admin).
+ *
+ * F2.5: las familias del <select> llegan de la lista VIGENTE
+ * (getCategoryList), pasadas por props al formulario.
  */
 
 export const metadata: Metadata = {
@@ -52,6 +56,10 @@ export default async function EditarProductoPage({
     );
     falloCarga = true;
   }
+
+  // Familias del <select>: la lista vigente (comparte fetch con la fila de
+  // arriba gracias a la memoización de getCategoryList).
+  const categorias = await getCategoryList();
 
   const volver = (
     <Link
@@ -100,7 +108,11 @@ export default async function EditarProductoPage({
             Los cambios se ven en el sitio al refrescarlo, sin redeployar.
           </p>
           <div className="mt-6">
-            <AdminProductForm mode="edit" product={product} />
+            <AdminProductForm
+              mode="edit"
+              product={product}
+              categorias={categorias}
+            />
           </div>
         </div>
       </div>

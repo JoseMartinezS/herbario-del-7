@@ -7,6 +7,7 @@ automáticamente al catálogo local `content/products.json` que ya conoce).
 | Archivo | Qué es |
 | --- | --- |
 | `migration.sql` | Script de migración: crea la tabla `products`, los permisos, el bucket de imágenes y carga las 15 líneas actuales. **Se corre UNA vez.** |
+| `migration-2-categorias.sql` | Migración 2 (F2.5): crea la tabla `categories`, carga las 7 familias actuales y cambia `products.category` a una FK hacia `categories`. **Se corre DESPUÉS de `migration.sql`.** |
 
 ---
 
@@ -74,6 +75,44 @@ ya configuradas, el nuevo deploy lee el catálogo de Supabase.
 **Para verificar que quedó activo:** abrí `herbariodel7.com/catalogo` — si ves
 el catálogo completo con fotos, listo. (Con Supabase caído también verías el
 catálogo, pero desde el JSON local: es el respaldo automático.)
+
+---
+
+## Categorías gestionables: tabla `categories` (F2.5)
+
+Las familias del catálogo (Veladoras, Hierbas y preparados, …) dejaron de
+estar escritas en el código: ahora viven en la tabla `categories` y el sitio
+las lee de acá (con `content/categories.json` de respaldo, igual que con los
+productos). Esta migración:
+
+1. **Crea la tabla `categories`** (slug, nombre, descripcion, posicion) con
+   permisos espejo de `products`: lectura pública, escritura con sesión.
+2. **Carga las 7 familias actuales** con sus nombres y descripciones exactos
+   (las mismas que se veían en el sitio) y su orden de siempre (posición 1-7).
+3. **Cambia `products.category`**: suelta la validación vieja ("solo estas 7
+   exactas", congelada en la base) y pone una **FK hacia `categories`**.
+   Desde acá, un producto solo puede apuntar a una familia que exista, y la
+   base **rechaza borrar una familia que todavía tenga productos** (cero
+   huérfanos por construcción).
+
+### Cómo correrla (el dueño, una vez)
+
+1. **Antes**: corré `migration.sql` si la base todavía no lo tiene (esta
+   migración necesita la tabla `products`).
+2. Entra a [supabase.com](https://supabase.com), abre el proyecto de
+   Herbario Del 7 y ve a **SQL Editor → New query**.
+3. Abrí `supabase/migration-2-categorias.sql`, copiá **todo** su contenido,
+   pegalo en el editor y pulsá **Run**. En segundos debe decir "Success".
+
+> Igual que la original, es **idempotente**: correrla dos veces no rompe
+> nada y no duplica las familias. Lo que NO hace es actualizar datos que
+> ya editaste a mano (si renombraste una familia en el dashboard, no se
+> pisa).
+
+**Para verificar que quedó activa:** en el menú lateral, **Table Editor →
+categories** — tenés que ver las 7 familias con sus nombres de siempre.
+El sitio sigue viéndose exactamente igual: recién cuando el panel (fase
+2.5) gestione categorías, empezarán a verse cambios nuevos acá.
 
 ---
 

@@ -52,6 +52,30 @@ test.describe("Panel admin (protegido)", () => {
     expect(respuesta.headers()["location"]).toContain("/admin/login");
   });
 
+  test("GET /admin/categorias sin sesión responde 307 hacia /admin/login", async ({
+    request,
+  }) => {
+    // F2.5: la gestión de familias es parte del panel — mismo portero,
+    // mismo contrato (fail-closed con o sin env vars de Supabase).
+    const respuesta = await request.get("/admin/categorias", {
+      maxRedirects: 0,
+    });
+    expect(respuesta.status()).toBe(307);
+    expect(respuesta.headers()["location"]).toContain("/admin/login");
+  });
+
+  test("GET /admin/categorias/<slug> sin sesión responde 307 hacia /admin/login", async ({
+    request,
+  }) => {
+    // Cualquier slug (no tiene que existir): el portero frena antes de
+    // que la página se renderice.
+    const respuesta = await request.get("/admin/categorias/cualquier-slug", {
+      maxRedirects: 0,
+    });
+    expect(respuesta.status()).toBe(307);
+    expect(respuesta.headers()["location"]).toContain("/admin/login");
+  });
+
   test("el redirect preserva la ruta original en ?next para volver tras el login", async ({
     page,
   }) => {

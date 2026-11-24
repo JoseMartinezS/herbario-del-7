@@ -25,7 +25,7 @@ import {
   paginar,
   parsePageParam,
 } from "@/lib/pagination";
-import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
+import { getCategoryList, nombreDeCategoria } from "@/lib/categories";
 import { logoutAction } from "./actions";
 
 /**
@@ -184,6 +184,11 @@ export default async function AdminPage({
   const mensajeOk = okParam !== undefined ? (MENSAJES_OK[okParam] ?? null) : null;
   const filtros = parseAdminFilters(params);
 
+  // Categorías vigentes (datos, no enum): alimentan los chips del filtro
+  // y la etiqueta de familia de cada fila. Comparten fetch con
+  // listAdminProducts gracias a la memoización de lib/categories.ts.
+  const categorias = await getCategoryList();
+
   // Sin fallback a products.json a propósito: el panel administra la
   // base REAL. Si no se puede leer, se muestra el error y un reintento
   // — jamás editarías "el respaldo" creyendo que editás el catálogo.
@@ -241,6 +246,12 @@ export default async function AdminPage({
           </span>
         ) : null}
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/categorias"
+            className="inline-flex items-center justify-center rounded-full border border-green-300 bg-transparent px-4 py-2.5 text-sm font-semibold text-green-800 transition-colors hover:border-green-400 hover:bg-green-50"
+          >
+            Categorías
+          </Link>
           <Link
             href="/admin/productos/nuevo"
             className="inline-flex items-center justify-center rounded-full bg-terracotta-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-700"
@@ -449,13 +460,16 @@ export default async function AdminPage({
                         Todas
                       </Chip>
                     </li>
-                    {CATEGORIES.map((category) => (
-                      <li key={category}>
+                    {categorias.map((categoria) => (
+                      <li key={categoria.slug}>
                         <Chip
-                          href={adminProductsHref({ ...filtros, category })}
-                          activo={filtros.category === category}
+                          href={adminProductsHref({
+                            ...filtros,
+                            category: categoria.slug,
+                          })}
+                          activo={filtros.category === categoria.slug}
                         >
-                          {CATEGORY_INFO[category].name}
+                          {categoria.nombre}
                         </Chip>
                       </li>
                     ))}
@@ -553,7 +567,7 @@ export default async function AdminPage({
                             ) : null}
                           </div>
                           <p className="text-xs text-green-800/70 sm:text-sm">
-                            {CATEGORY_INFO[product.category].name}
+                            {nombreDeCategoria(categorias, product.category)}
                             <span className="text-green-800/50"> · #{product.position}</span>
                           </p>
                           <div className="flex flex-wrap items-center gap-2">

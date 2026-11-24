@@ -1,4 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetCategoriesCacheForTests } from "./categories";
+import {
+  getLocalCategories,
+  validarCategoriasDeCatalogo,
+} from "./categories";
 import {
   getCategoriesWithCounts,
   getFeaturedProducts,
@@ -28,12 +33,17 @@ import { CATEGORIES } from "./types";
  * Desde F2.1 la capa es async y tiene doble modo (JSON local / Supabase
  * con fallback): los primeros describes fijan el contrato del modo JSON
  * (sin env vars, como corre CI); los últimos fijan el mapeo de filas de
- * la base y el fallback.
+ * la base y el fallback. Desde F2.5 la membresía de categoría se valida
+ * contra la lista VIGENTE de categorías (categories.json / tabla), no
+ * contra un enum — los guards reciben el Set por parámetro.
  */
 
 /** URL pública del bucket de Storage (la que siembra supabase/migration.sql). */
 const STORAGE_URL =
   "https://mmvifyolydrohrfffqtl.supabase.co/storage/v1/object/public/products";
+
+/** Slugs válidos para los guards de filas: la semilla de categories.json. */
+const SLUGS_VALIDOS = new Set<string>(CATEGORIES);
 
 /** Fila REAL de la tabla (snake_case) armada sobre datos del catálogo. */
 const filaVeladorasPreparadas: ProductRow = {
@@ -66,9 +76,11 @@ const filaCopal: ProductRow = {
 };
 
 beforeEach(() => {
-  // Cada test arranca con los caches vacíos (local y remoto): sin esto,
-  // el modo Supabase de un test contaminaría al siguiente.
+  // Cada test arranca con los caches vacíos (local y remoto, productos y
+  // categorías): sin esto, el modo Supabase de un test contaminaría al
+  // siguiente.
   resetCatalogCacheForTests();
+  resetCategoriesCacheForTests();
 });
 
 afterEach(() => {
@@ -191,7 +203,7 @@ describe("getCategoriesWithCounts (modo JSON local)", () => {
     expect(counts.get("capsulas-y-suplementos")).toBe(1);
   });
 
-  it("debería usar las etiquetas legibles de CATEGORY_INFO", async () => {
+  it("debería usar las etiquetas legibles de la semilla (categories.json)", async () => {
     const entries = await getCategoriesWithCounts();
     const veladoras = entries.find((entry) => entry.category === "veladoras");
     expect(veladoras?.name).toBe("Veladoras");
@@ -199,6 +211,16 @@ describe("getCategoriesWithCounts (modo JSON local)", () => {
       (entry) => entry.category === "sahumerios-e-inciensos",
     );
     expect(sahumerios?.name).toBe("Sahumerios e Inciensos");
+  });
+
+  it("products.json y categories.json quedan sincronizados (validación cruzada)", async () => {
+    // El load local valida cruzado y REVIENTA si un producto usara una
+    // categoría fuera de categories.json (fail-fast de F2.5): llegar acá
+    // ya prueba que el catálogo y la semilla están sincronizados.
+    const products = await getProducts();
+    expect(() =>
+      validarCategoriasDeCatalogo(products, getLocalCategories()),
+    ).not.toThrow();
   });
 });
 
@@ -217,7 +239,7 @@ describe("precios del catálogo (modo JSON local)", () => {
 
 describe("modo Supabase: mapeo ProductRow → Product", () => {
   it("debería mapear las columnas snake_case al tipo Product (camelCase)", () => {
-    const product = mapRowToProduct(filaVeladorasPreparadas);
+    const product = mapRowToProduct(filaVeladorasPreparadas, SLUGS_VALIDOS);
 
     expect(product).not.toBeNull();
     expect(product?.slug).toBe("veladoras-preparadas");
@@ -232,14 +254,14 @@ describe("modo Supabase: mapeo ProductRow → Product", () => {
   });
 
   it("debería conservar price null y featured true tal cual llegan", () => {
-    const product = mapRowToProduct(filaVeladorasPreparadas);
+    const product = mapRowToProduct(filaVeladorasPreparadas, SLUGS_VALIDOS);
 
     expect(product?.price).toBeNull();
     expect(product?.featured).toBe(true);
   });
 
   it("no debería filtrar columnas de la tabla hacia el tipo Product", () => {
-    const product = mapRowToProduct(filaVeladorasPreparadas);
+    const product = mapRowToProduct(filaVeladorasPreparadas, SLUGS_VALIDOS);
 
     // El tipo Product no lleva status/position/id: la UI no debe verlos.
     expect(Object.keys(product ?? {}).sort()).toEqual([
@@ -254,29 +276,37 @@ describe("modo Supabase: mapeo ProductRow → Product", () => {
     ]);
   });
 
-  it("debería devolver null si la categoría no es una de las 7 del sitio", () => {
-    const product = mapRowToProduct({
-      ...filaVeladorasPreparadas,
-      category: "otros",
-    });
+  it("debería devolver null si la categoría no está en la lista vigente", () => {
+    // F2.5: el guard valida contra el Set recibido por parámetro (la
+    // lista VIGENTE), no contra un enum compilado. "otros" sigue fuera.
+    const product = mapRowToProduct(
+      {
+        ...filaVeladorasPreparadas,
+        category: "otros",
+      },
+      SLUGS_VALIDOS,
+    );
     expect(product).toBeNull();
   });
 
   it("debería aceptar una fila con precio numérico (cuando el dueño cargue precios)", () => {
-    const product = mapRowToProduct({
-      ...filaVeladorasPreparadas,
-      price: 45,
-    });
+    const product = mapRowToProduct(
+      {
+        ...filaVeladorasPreparadas,
+        price: 45,
+      },
+      SLUGS_VALIDOS,
+    );
     expect(product?.price).toBe(45);
   });
 });
 
 describe("modo Supabase: filtrado de filas (mapRowsToProducts)", () => {
   it("solo debería servir filas published: retired jamás llega al público", () => {
-    const products = mapRowsToProducts([
-      filaVeladorasPreparadas,
-      { ...filaCopal, status: "retired" },
-    ]);
+    const products = mapRowsToProducts(
+      [filaVeladorasPreparadas, { ...filaCopal, status: "retired" }],
+      SLUGS_VALIDOS,
+    );
 
     expect(products).toHaveLength(1);
     expect(products[0].slug).toBe("veladoras-preparadas");
@@ -285,13 +315,16 @@ describe("modo Supabase: filtrado de filas (mapRowsToProducts)", () => {
   it("debería ignorar filas malformadas sin tumbar el resto del catálogo", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const products = mapRowsToProducts([
-      filaVeladorasPreparadas,
-      { ...filaCopal, price: -10 }, // precio negativo: fila inválida
-      { ...filaCopal, slug: "Sin Kebab" }, // slug que rompe el patrón
-      "no soy un objeto",
-      null,
-    ]);
+    const products = mapRowsToProducts(
+      [
+        filaVeladorasPreparadas,
+        { ...filaCopal, price: -10 }, // precio negativo: fila inválida
+        { ...filaCopal, slug: "Sin Kebab" }, // slug que rompe el patrón
+        "no soy un objeto",
+        null,
+      ],
+      SLUGS_VALIDOS,
+    );
 
     expect(products.map((product) => product.slug)).toEqual([
       "veladoras-preparadas",
@@ -302,19 +335,19 @@ describe("modo Supabase: filtrado de filas (mapRowsToProducts)", () => {
   it("debería ignorar slugs duplicados (protege generateStaticParams)", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const products = mapRowsToProducts([
-      filaVeladorasPreparadas,
-      filaVeladorasPreparadas,
-    ]);
+    const products = mapRowsToProducts(
+      [filaVeladorasPreparadas, filaVeladorasPreparadas],
+      SLUGS_VALIDOS,
+    );
 
     expect(products).toHaveLength(1);
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it("debería devolver [] si la respuesta no es un arreglo", () => {
-    expect(mapRowsToProducts({ error: "ups" })).toEqual([]);
-    expect(mapRowsToProducts("nope")).toEqual([]);
-    expect(mapRowsToProducts(null)).toEqual([]);
+    expect(mapRowsToProducts({ error: "ups" }, SLUGS_VALIDOS)).toEqual([]);
+    expect(mapRowsToProducts("nope", SLUGS_VALIDOS)).toEqual([]);
+    expect(mapRowsToProducts(null, SLUGS_VALIDOS)).toEqual([]);
   });
 });
 
@@ -379,11 +412,30 @@ describe("modo Supabase: fallback a products.json", () => {
   it("con env vars y respuesta válida, debería servir el catálogo de Supabase", async () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://ejemplo.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-de-prueba");
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => [filaVeladorasPreparadas, filaCopal],
-    } as unknown as Response);
+    // El modo remoto pide DOS endpoints (products + categories): el mock
+    // rutea por URL para que cada uno reciba su respuesta propia.
+    const fetchMock = vi.fn((url: unknown) => {
+      if (typeof url === "string" && url.includes("/rest/v1/categories")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => [
+            { slug: "veladoras", nombre: "Veladoras", descripcion: "", posicion: 1 },
+            {
+              slug: "sahumerios-e-inciensos",
+              nombre: "Sahumerios e Inciensos",
+              descripcion: "",
+              posicion: 7,
+            },
+          ],
+        } as unknown as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => [filaVeladorasPreparadas, filaCopal],
+      } as unknown as Response);
+    });
     vi.stubGlobal("fetch", fetchMock);
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -418,10 +470,13 @@ describe("modo Supabase: fallback a products.json", () => {
     } as unknown as Response);
     vi.stubGlobal("fetch", fetchMock);
 
-    const products = await fetchSupabaseProducts({
-      url: "https://ejemplo.supabase.co",
-      anonKey: "anon-de-prueba",
-    });
+    const products = await fetchSupabaseProducts(
+      {
+        url: "https://ejemplo.supabase.co",
+        anonKey: "anon-de-prueba",
+      },
+      SLUGS_VALIDOS,
+    );
 
     expect(products).toHaveLength(1);
     const [endpoint] = fetchMock.mock.calls[0] as [string];

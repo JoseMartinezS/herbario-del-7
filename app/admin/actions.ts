@@ -36,6 +36,7 @@ import {
   type AdminProduct,
 } from "@/lib/admin-products";
 import { invalidateCatalogCache } from "@/lib/products";
+import { getCategoryList, slugsDeCategorias } from "@/lib/categories";
 
 /**
  * Server Actions del panel admin.
@@ -191,6 +192,20 @@ const MENSAJE_NO_EXISTE =
 const MENSAJE_STATUS =
   "El estado del producto solo puede ser publicado o retirado.";
 
+/**
+ * F2.5: la familia elegida tiene que existir en la lista VIGENTE. El
+ * schema valida la FORMA del slug; la MEMBRESÍA es un chequeo de datos
+ * (la FK hacia categories es el último muro, en la base).
+ */
+const MENSAJE_FAMILIA_NO_EXISTE =
+  "Esa familia no existe en el catálogo. Créala en el panel de categorías y vuelve a intentarlo.";
+
+/** ¿El slug de familia está en la lista vigente? (F2.5: los slugs ya no
+ *  viven en un enum compilado — la membresía se valida contra datos). */
+async function esCategoriaVigente(slug: string): Promise<boolean> {
+  return slugsDeCategorias(await getCategoryList()).has(slug);
+}
+
 /** Campos que tipea el dueño (los mismos del formulario compartido). */
 interface ProductFieldsInput {
   name: string;
@@ -292,6 +307,13 @@ export async function createProductAction(
   const campos = adminProductFieldsSchema.safeParse({ ...input, slug });
   if (!campos.success) {
     return { error: campos.error.issues[0]?.message ?? MENSAJE_GUARDAR };
+  }
+
+  // F2.5 (membresía dinámica): la FORMA del slug de familia ya la validó
+  // el schema; acá se valida que EXISTA en la lista vigente, antes de
+  // subir foto o tocar la tabla (la FK de la base es el último muro).
+  if (!(await esCategoriaVigente(campos.data.category))) {
+    return { error: MENSAJE_FAMILIA_NO_EXISTE };
   }
 
   // La foto se valida ANTES de tocar la red (nunca se confía en el
@@ -400,6 +422,15 @@ export async function updateProductAction(
     return { error: MENSAJE_STATUS };
   }
   const status: ProductStatus = input.status;
+
+  // F2.5 (membresía dinámica): la familia debe existir en la lista vigente
+  // ANTES de subir la foto nueva o tocar la tabla (la FK de la base es el
+  // último muro). Va afuera del try a propósito: no depende de la fila
+  // actual, solo del campo que llegó del formulario — mismo lugar que el
+  // chequeo de status.
+  if (!(await esCategoriaVigente(input.category))) {
+    return { error: MENSAJE_FAMILIA_NO_EXISTE };
+  }
 
   let fallo: string | null = null;
   let slugParaRevalidar: string | null = null;

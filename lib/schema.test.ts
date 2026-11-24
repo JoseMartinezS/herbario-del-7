@@ -39,8 +39,15 @@ describe("productSchema", () => {
     expect(result).toEqual(veladorasPreparadas);
   });
 
-  it("debería rechazar una categoría inexistente", () => {
-    expectRejected({ ...veladorasPreparadas, category: "tes" }, "category");
+  it("debería rechazar una categoría mal formada (no kebab-case)", () => {
+    // F2.5: el schema valida la FORMA; la EXISTENCIA contra la lista
+    // vigente la valida la carga del catálogo (validarCategoriasDeCatalogo,
+    // cubierto en categories.test.ts).
+    expectRejected({ ...veladorasPreparadas, category: "Veladoras" }, "category");
+    expectRejected(
+      { ...veladorasPreparadas, category: "con espacios" },
+      "category",
+    );
   });
 
   it("debería rechazar un slug mal formado (espacios y mayúsculas)", () => {

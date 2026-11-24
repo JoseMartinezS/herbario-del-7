@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,8 +9,8 @@ import AdminImageInput from "@/components/AdminImageInput";
 import { createProductAction, updateProductAction } from "@/app/admin/actions";
 import { MAX_PRICE } from "@/lib/admin-schema";
 import { slugify } from "@/lib/slugify";
-import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
 import type { AdminProduct } from "@/lib/admin-products";
+import type { Categoria } from "@/lib/types";
 
 /**
  * Formulario de producto del panel (F2.3): UN componente para crear y
@@ -33,44 +33,57 @@ import type { AdminProduct } from "@/lib/admin-products";
  *
  * La foto se elige y comprime acá (AdminImageInput + canvas) y viaja a
  * la action como archivo ya liviano.
+ *
+ * F2.5: las familias del <select> llegan POR PROPS desde las páginas server
+ * (getCategoryList: datos vigentes, no un enum compilado ni un JSON del
+ * bundle). El refine de zod valida contra ESA lista, y la action de
+ * productos re-valida la membresía en el servidor (defense in depth:
+ * la FK es el último muro).
  */
 
-const formSchema = z.object({
-  name: z.string().min(1, "El nombre es obligatorio."),
-  shortDescription: z
-    .string()
-    .min(1, "La descripción corta es obligatoria.")
-    .max(140, "La descripción corta no debe pasar de 140 caracteres."),
-  description: z
-    .string()
-    .min(1, "La descripción es obligatoria.")
-    .refine(
-      (value) => value.includes("\n\n"),
-      "Escribe dos párrafos separados por una línea en blanco.",
+/**
+ * Schema del formulario, construido sobre la lista de familias que llega
+ * por props: el refine de `category` valida MEMBRESÍA contra esa lista.
+ * Es una función (no un módulo) porque la lista es runtime, no build-time.
+ */
+function crearFormSchema(familias: readonly Categoria[]) {
+  return z.object({
+    name: z.string().min(1, "El nombre es obligatorio."),
+    shortDescription: z
+      .string()
+      .min(1, "La descripción corta es obligatoria.")
+      .max(140, "La descripción corta no debe pasar de 140 caracteres."),
+    description: z
+      .string()
+      .min(1, "La descripción es obligatoria.")
+      .refine(
+        (value) => value.includes("\n\n"),
+        "Escribe dos párrafos separados por una línea en blanco.",
+      ),
+    category: z.string().refine(
+      (value) => familias.some((categoria) => categoria.slug === value),
+      "Elige una familia del mostrador.",
     ),
-  category: z.string().refine(
-    (value) => (CATEGORIES as readonly string[]).includes(value),
-    "Elige una familia del mostrador.",
-  ),
-  price: z
-    .string()
-    .refine(
-      (value) => value === "" || /^\d+$/.test(value),
-      "El precio debe ser un número entero de pesos (sin centavos).",
-    )
-    .refine(
-      (value) => value === "" || Number(value) <= MAX_PRICE,
-      "El precio máximo es $99,999,999.",
-    ),
-  featured: z.boolean(),
-  status: z.enum(["published", "retired"]),
-});
+    price: z
+      .string()
+      .refine(
+        (value) => value === "" || /^\d+$/.test(value),
+        "El precio debe ser un número entero de pesos (sin centavos).",
+      )
+      .refine(
+        (value) => value === "" || Number(value) <= MAX_PRICE,
+        "El precio máximo es $99,999,999.",
+      ),
+    featured: z.boolean(),
+    status: z.enum(["published", "retired"]),
+  });
+}
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof crearFormSchema>>;
 
 type AdminProductFormProps =
-  | { mode: "create" }
-  | { mode: "edit"; product: AdminProduct };
+  | { mode: "create"; categorias: readonly Categoria[] }
+  | { mode: "edit"; product: AdminProduct; categorias: readonly Categoria[] };
 
 function fieldClass(hasError: boolean): string {
   return `w-full rounded-md border bg-white px-3.5 py-2.5 text-base text-green-900 placeholder:text-green-800/40 transition-colors focus:border-green-600 ${
@@ -89,6 +102,15 @@ export default function AdminProductForm(props: AdminProductFormProps) {
   const [imageError, setImageError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
+
+  // Familias del <select>: la lista llega por props y se ordena por
+  // posición (defensivo: la fuente ya viene ordenada). El schema se
+  // deriva de ESA lista — misma instancia mientras las props no cambien.
+  const familias = useMemo(
+    () => [...props.categorias].sort((a, b) => a.posicion - b.posicion),
+    [props.categorias],
+  );
+  const formSchema = useMemo(() => crearFormSchema(familias), [familias]);
 
   const {
     register,
@@ -255,9 +277,9 @@ export default function AdminProductForm(props: AdminProductFormProps) {
           <option value="" disabled>
             Elige una familia…
           </option>
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {CATEGORY_INFO[category].name}
+          {familias.map((categoria) => (
+            <option key={categoria.slug} value={categoria.slug}>
+              {categoria.nombre}
             </option>
           ))}
         </select>

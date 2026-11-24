@@ -1,13 +1,18 @@
-import { CATEGORY_INFO } from "./types";
 import type { Product } from "./types";
 
 /**
  * Generadores de datos estructurados (schema.org) de la ficha de producto:
  * `Product` y `BreadcrumbList`, listos para serializar como JSON-LD.
  *
- * Funciones puras (producto + URL base → objeto schema): así se testean
- * con Vitest sin montar React. La serialización y el `<script>` viven en
- * components/ProductJsonLd.tsx, montado en app/catalogo/[slug]/page.tsx.
+ * Funciones puras (producto + URL base + etiqueta de categoría → objeto
+ * schema): así se testean con Vitest sin montar React. La serialización
+ * y el `<script>` viven en components/ProductJsonLd.tsx, montado en
+ * app/catalogo/[slug]/page.tsx.
+ *
+ * F2.5: la etiqueta legible de la categoría ("Veladoras") ya no sale de
+ * un Record compilado — la resuelve el llamador contra la lista vigente
+ * (nombreDeCategoria, lib/categories.ts) y llega por parámetro: el
+ * generador serializa, no carga datos.
  *
  * La ficha `Store` del negocio (LocalBusiness) es global y vive aparte en
  * components/JsonLd.tsx; aquí no se duplica nada de ella.
@@ -68,6 +73,9 @@ function productUrl(product: Product, siteUrl: string): string {
 /**
  * Construye el schema Product del producto.
  *
+ * `nombreCategoria` es la etiqueta legible resuelta contra la lista
+ * vigente (nombreDeCategoria): Google lee la etiqueta, no el slug.
+ *
  * `price: null` significa "consulta el precio por WhatsApp": el schema
  * sale SIN `offers` (ni precio 0 ni offers vacíos, que Google leería
  * como producto gratis).
@@ -75,6 +83,7 @@ function productUrl(product: Product, siteUrl: string): string {
 export function buildProductSchema(
   product: Product,
   siteUrl: string,
+  nombreCategoria: string,
 ): ProductSchema {
   const url = productUrl(product, siteUrl);
 
@@ -90,7 +99,7 @@ export function buildProductSchema(
     image: productImage(product, siteUrl),
     url,
     // Etiqueta legible ("Veladoras"), no el slug de la URL.
-    category: CATEGORY_INFO[product.category].name,
+    category: nombreCategoria,
   };
 
   if (product.price !== null) {

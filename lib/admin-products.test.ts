@@ -79,8 +79,11 @@ describe("isAdminProductRow", () => {
 });
 
 describe("mapRowToAdminProduct", () => {
+  /** Slugs válidos para el guard: llega por parámetro desde el loader (F2.5). */
+  const SLUGS_VALIDOS = new Set(["veladoras"]);
+
   it("debería mapear snake_case → camelCase conservando id, status, position y updatedAt", () => {
-    const product = mapRowToAdminProduct(filaValida);
+    const product = mapRowToAdminProduct(filaValida, SLUGS_VALIDOS);
     expect(product).toEqual({
       id: filaValida.id,
       slug: "veladoras-preparadas",
@@ -97,8 +100,12 @@ describe("mapRowToAdminProduct", () => {
     });
   });
 
-  it("debería devolver null si la categoría no es de las 7", () => {
-    expect(mapRowToAdminProduct({ ...filaValida, category: "otros" })).toBeNull();
+  it("debería devolver null si la categoría no está en la lista vigente", () => {
+    // "otros" sigue cayendo: el Set es la lista REAL (categories.json /
+    // tabla categories), armada por el loader antes de mapear filas.
+    expect(
+      mapRowToAdminProduct({ ...filaValida, category: "otros" }, SLUGS_VALIDOS),
+    ).toBeNull();
   });
 });
 
