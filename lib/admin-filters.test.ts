@@ -125,18 +125,41 @@ describe("parseAdminFilters", () => {
     expect(parseAdminFilters({ estado: "" }).status).toBe("todos");
   });
 
-  it("basura en categoría cae a todas (solo slugs de las 7)", () => {
-    expect(parseAdminFilters({ categoria: "inventada" }).category).toBe(
-      "todas",
-    );
+  it("basura en categoría cae a todas (mayúsculas, espacios, vacío)", () => {
+    // v2: el contrato ya no enumera slugs — solo exige la FORMA kebab.
+    // "inventada" sería un slug VÁLIDO y por eso se mantiene (test aparte).
     expect(parseAdminFilters({ categoria: "Veladoras" }).category).toBe(
       "todas",
     );
+    expect(parseAdminFilters({ categoria: "Categoría Inventada" }).category).toBe(
+      "todas",
+    );
+    expect(parseAdminFilters({ categoria: "con espacios" }).category).toBe(
+      "todas",
+    );
+    expect(parseAdminFilters({ categoria: "guion_bajo" }).category).toBe(
+      "todas",
+    );
+    expect(parseAdminFilters({ categoria: "" }).category).toBe("todas");
+    // "todas" es la palabra RESERVADA del default (aunque sea un slug válido).
     expect(parseAdminFilters({ categoria: "todas" }).category).toBe("todas");
-    // sanity: las 7 categorías reales pasan todas.
+    // sanity: las 7 categorías semilla pasan todas (son slugs válidos).
     for (const categoria of CATEGORIES) {
       expect(parseAdminFilters({ categoria }).category).toBe(categoria);
     }
+  });
+
+  it("v2: un slug bien formado DESCONOCIDO se mantiene (categorías dinámicas)", () => {
+    // Firmada por el dueño (24-nov-2026): "amuletos" no existe hoy, pero es
+    // un slug kebab válido y el filtro lo respeta — la lista de categorías
+    // vive en datos, no en este contrato.
+    expect(parseAdminFilters({ categoria: "amuletos" }).category).toBe(
+      "amuletos",
+    );
+    // case-sensible: el kebab es minúsculas.
+    expect(parseAdminFilters({ categoria: "Amuletos" }).category).toBe(
+      "todas",
+    );
   });
 
   it("destacados solo se activa con 1 exacto", () => {
@@ -263,6 +286,28 @@ describe("filterAdminProducts", () => {
     ]);
   });
 
+  it("v2: una categoría nueva (slug dinámico) matchea igual", () => {
+    // Lista suelta a propósito (no CATALOGO): documentar el contrato v2 sin
+    // tocar las fixtures de los otros tests.
+    const lista: AdminListProduct[] = [
+      fixture({
+        slug: "amuleto-de-proteccion",
+        name: "Amuleto de Protección",
+        category: "amuletos",
+        position: 16,
+      }),
+      fixture({
+        slug: "veladoras-de-parafina",
+        name: "Veladoras de Parafina",
+        position: 1,
+      }),
+    ];
+    const filtros: AdminFilters = { ...DEFAULT_ADMIN_FILTERS, category: "amuletos" };
+    expect(porSlug(filterAdminProducts(lista, filtros))).toEqual([
+      "amuleto-de-proteccion",
+    ]);
+  });
+
   it("solo destacados deja los marcados con estrella", () => {
     const filtros: AdminFilters = { ...DEFAULT_ADMIN_FILTERS, featuredOnly: true };
     expect(porSlug(filterAdminProducts(CATALOGO, filtros))).toEqual([
@@ -379,6 +424,12 @@ describe("adminProductsHref", () => {
       "/admin?q=copal%20blanco&estado=retirados&categoria=veladoras&destacados=1&orden=editados",
     );
   });
+
+  it("v2: un slug dinámico desconocido también viaja en la URL", () => {
+    expect(
+      adminProductsHref({ ...DEFAULT_ADMIN_FILTERS, category: "amuletos" }),
+    ).toBe("/admin?categoria=amuletos");
+  });
 });
 
 describe("hasActiveFilters", () => {
@@ -395,6 +446,10 @@ describe("hasActiveFilters", () => {
     ).toBe(true);
     expect(
       hasActiveFilters({ ...DEFAULT_ADMIN_FILTERS, category: "veladoras" }),
+    ).toBe(true);
+    // v2: un slug dinámico desconocido también oculta productos.
+    expect(
+      hasActiveFilters({ ...DEFAULT_ADMIN_FILTERS, category: "amuletos" }),
     ).toBe(true);
     expect(
       hasActiveFilters({ ...DEFAULT_ADMIN_FILTERS, featuredOnly: true }),

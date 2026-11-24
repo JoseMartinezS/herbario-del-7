@@ -1,4 +1,4 @@
-import { isCategory, type Category } from "./types";
+import { isValidSlug } from "./slugify";
 
 /**
  * Búsqueda, filtros y orden de la lista del panel (Polish del panel).
@@ -20,9 +20,18 @@ import { isCategory, type Category } from "./types";
  * Contrato de los parámetros (defaults en DEFAULT_ADMIN_FILTERS):
  * - `q`: texto libre; matchea name Y slug, sin acentos ni mayúsculas.
  * - `estado`: `todos` | `publicados` | `retirados` (default `todos`).
- * - `categoria`: slug de las 7 categorías | `todas` (default `todas`).
+ * - `categoria`: slug kebab-case de una categoría del sitio | `todas`
+ *   (default `todas`).
  * - `destacados`: `1` activa "solo destacados" (default off).
  * - `orden`: `posicion` | `nombre` | `editados` (default `posicion`).
+ *
+ * EVOLUCIÓN v2 (firmada por el dueño, 24-nov-2026): `categoria` pasó de
+ * "solo los 7 slugs compilados" a "cualquier slug kebab-case bien
+ * formado" (F2.5: las categorías ahora son datos dinámicos gestionados
+ * desde el panel, no un enum del código). `todas` queda como palabra
+ * reservada del default; la membresía real contra la lista vigente la
+ * garantizan la FK de la base y los guards del catálogo — acá solo se
+ * valida la FORMA del slug.
  */
 
 /** Filtro de estado de la fila (los valores que viajan en la URL, en español). */
@@ -36,7 +45,12 @@ export interface AdminFilters {
   /** Texto de búsqueda crudo (recortado y con tope de largo); "" = sin filtro. */
   search: string;
   status: AdminStatusFilter;
-  category: Category | "todas";
+  /**
+   * Slug de la categoría activa (v2: cualquier slug kebab-case bien
+   * formado — las categorías son dinámicas). "todas" es la palabra
+   * reservada del default.
+   */
+  category: string;
   featuredOnly: boolean;
   order: AdminOrderFilter;
 }
@@ -79,7 +93,7 @@ function primerValor(valor: string | string[] | undefined): string | undefined {
 /**
  * Parsea y valida los searchParams de /admin → AdminFilters.
  *
- * Todo valor inválido (estado inventado, categoría fuera de las 7,
+ * Todo valor inválido (estado inventado, categoría mal formada,
  * orden raro, destacados distinto de "1") cae a su default sin error:
  * el panel no se rompe por una URL editada a mano.
  */
@@ -94,9 +108,13 @@ export function parseAdminFilters(
     estado === "publicados" || estado === "retirados" ? estado : "todos";
 
   const categoria = primerValor(params.categoria);
-  const category: Category | "todas" = isCategory(categoria)
-    ? categoria
-    : "todas";
+  // v2: se mantiene cualquier slug kebab-case bien formado (categorías
+  // dinámicas). "todas" es la palabra reservada del default, y todo lo
+  // demás (vacío, mayúsculas, espacios, basura) cae a ella sin error.
+  const category: string =
+    categoria !== undefined && categoria !== "todas" && isValidSlug(categoria)
+      ? categoria
+      : "todas";
 
   const featuredOnly = primerValor(params.destacados) === "1";
 
@@ -115,7 +133,8 @@ export function parseAdminFilters(
 export interface AdminListProduct {
   name: string;
   slug: string;
-  category: Category;
+  /** Slug de la categoría (v2: dinámica; el unión de 7 ya no describe el runtime). */
+  category: string;
   status: "published" | "retired";
   featured: boolean;
   position: number;
