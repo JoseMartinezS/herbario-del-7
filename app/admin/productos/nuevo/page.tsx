@@ -5,6 +5,7 @@ import { IconArrowLeft } from "@/components/icons";
 import AdminProductForm from "@/components/AdminProductForm";
 import { ADMIN_LOGIN_PATH } from "@/lib/supabase-auth";
 import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
+import { getCategoryList } from "@/lib/categories";
 
 /**
  * Crear un producto (F2.3).
@@ -17,6 +18,9 @@ import { getAuthenticatedUser } from "@/lib/supabase-auth-server";
  * la posición la calcula la action (MAX+1): el dueño solo tipea lo que
  * ve en el mostrador. La foto es obligatoria acá — el flujo natural es
  * sacar la foto, ver el preview y guardar.
+ *
+ * F2.5: las familias del <select> llegan de la lista VIGENTE
+ * (getCategoryList), pasadas por props al formulario.
  */
 
 export const metadata: Metadata = {
@@ -30,6 +34,8 @@ export default async function NuevoProductoPage() {
   if (user === null) {
     redirect(ADMIN_LOGIN_PATH);
   }
+
+  const categorias = await getCategoryList();
 
   return (
     <section className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
@@ -51,7 +57,7 @@ export default async function NuevoProductoPage() {
             sola a partir del nombre.
           </p>
           <div className="mt-6">
-            <AdminProductForm mode="create" />
+            <AdminProductForm mode="create" categorias={categorias} />
           </div>
         </div>
       </div>

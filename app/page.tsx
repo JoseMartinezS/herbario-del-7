@@ -136,7 +136,7 @@ export default async function HomePage() {
         <SprigDivider className="mx-auto mb-10 w-44" />
         <SectionHeading
           title="Lo que encontrarás en el herbolario"
-          intro="Siete rincones de la casa: hierbas y preparados de siempre, veladoras para cada intención y cuidado personal con productos naturales."
+          intro="Los rincones de la casa: hierbas y preparados de siempre, veladoras para cada intención y cuidado personal con productos naturales."
         />
         <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categorias.map((categoria) => {

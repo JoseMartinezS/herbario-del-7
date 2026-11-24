@@ -19,18 +19,34 @@ import {
   parsePageParam,
 } from "@/lib/pagination";
 
-const CATALOGO_DESCRIPTION =
-  "Catálogo de Herbario Del 7: veladoras de 7 días, hierbas y preparados, aguas de riego, lociones, cápsulas y suplementos, cuidado natural y sahumerios e inciensos, con asesoría tradicional en Frontera, Coahuila.";
+/**
+ * F2.5: la descripción deriva de la lista VIGENTE de familias (generateMetadata
+ * puede hacer await): nunca queda una enumeración hardcodeada desactualizada,
+ * y los nombres reales de las familias siguen siendo las palabras clave de
+ * SEO local que siempre fueron.
+ */
+function descripcionDeCatalogo(categorias: readonly Categoria[]): string {
+  const familias = new Intl.ListFormat("es-MX", {
+    style: "long",
+    type: "conjunction",
+  }).format(
+    categorias.map((categoria) => categoria.nombre.toLocaleLowerCase("es-MX")),
+  );
+  return `Catálogo de Herbario Del 7: ${familias}. Con asesoría tradicional en Frontera, Coahuila.`;
+}
 
-export const metadata: Metadata = {
-  title: "Catálogo",
-  description: CATALOGO_DESCRIPTION,
-  openGraph: {
-    title: "Catálogo | Herbario Del 7",
-    description: CATALOGO_DESCRIPTION,
-    url: "/catalogo",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const descripcion = descripcionDeCatalogo(await getCategoryList());
+  return {
+    title: "Catálogo",
+    description: descripcion,
+    openGraph: {
+      title: "Catálogo | Herbario Del 7",
+      description: descripcion,
+      url: "/catalogo",
+    },
+  };
+}
 
 /**
  * ISR: regenera la página cada hora para reflejar cambios del catálogo (en
@@ -105,10 +121,8 @@ export default async function CatalogoPage({
           Catálogo del herbolario
         </h1>
         <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-green-800/80">
-          La vitrina del mostrador ordenada por familias: hierbas y preparados
-          de siempre, veladoras para cada intención, aguas y riegos, lociones,
-          cápsulas, cuidado natural y sahumerios e inciensos. Filtra por
-          categoría o recorre todo de corrido.
+          La vitrina del mostrador ordenada por los rincones de la casa.
+          Filtra por categoría o recorre todo de corrido.
         </p>
       </header>
 
