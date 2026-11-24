@@ -1,12 +1,17 @@
 import productsData from "@/content/products.json";
+import {
+  getCategoryList,
+  getLocalCategories,
+  slugsDeCategorias,
+  validarCategoriasDeCatalogo,
+} from "./categories";
 import { productArraySchema } from "./schema";
 import {
   fetchSupabaseProducts,
   getSupabaseCatalogConfig,
 } from "./supabase-catalog";
 import type { SupabaseCatalogConfig } from "./supabase-catalog";
-import { CATEGORIES, CATEGORY_INFO } from "./types";
-import type { Category, Product } from "./types";
+import type { Product } from "./types";
 
 /**
  * Capa de acceso al catálogo. Toda la UI lee los productos desde aquí;
@@ -27,6 +32,12 @@ import type { Category, Product } from "./types";
  * modo local resuelven al instante. Solo se usan desde el servidor (RSC,
  * generateStaticParams, sitemap): nada de esto llega al cliente.
  *
+ * F2.5: las categorías dejaron de ser un enum compilado. La membresía de
+ * product.category se valida contra la lista VIGENTE (content/categories.json
+ * en local, tabla categories en remoto — lib/categories.ts): en local con
+ * una validación cruzada fail-fast al cargar el JSON; en remoto con el Set
+ * de slugs válidos que se pasa a los guards de filas.
+ *
  * price: null se interpreta como "Consulta el precio por WhatsApp"
  * (hoy todo el catálogo se publica así; cargar el número al confirmarlo).
  */
@@ -36,7 +47,12 @@ let localCatalogCache: Product[] | null = null;
 
 function getLocalCatalog(): Product[] {
   if (localCatalogCache === null) {
-    localCatalogCache = productArraySchema.parse(productsData);
+    const products = productArraySchema.parse(productsData);
+    // Fail-fast local (F2.5): la membresía de categoría ya no vive en un
+    // enum del schema — se valida cruzado contra categories.json, con un
+    // error que dice qué producto corregir.
+    validarCategoriasDeCatalogo(products, getLocalCategories());
+    localCatalogCache = products;
   }
   return localCatalogCache;
 }
@@ -67,15 +83,19 @@ function getRemoteCatalogWithFallback(
   if (cached !== null && Date.now() - cached.cachedAt < REMOTE_TTL_MS) {
     return cached.promise;
   }
-  const promise = fetchSupabaseProducts(config).catch(
-    (error: unknown): Product[] => {
+  const promise = getCategoryList()
+    .then((categorias) =>
+      // La lista VIGENTE de categorías se resuelve ANTES de mapear filas:
+      // los guards validan contra datos, no contra un enum compilado.
+      fetchSupabaseProducts(config, slugsDeCategorias(categorias)),
+    )
+    .catch((error: unknown): Product[] => {
       remoteCatalogCache = null;
       console.warn(
         `[catálogo] Supabase falló (${toErrorMessage(error)}); se sirve products.json local como fallback.`,
       );
       return getLocalCatalog();
-    },
-  );
+    });
   remoteCatalogCache = { promise, cachedAt: Date.now() };
   return promise;
 }
@@ -101,9 +121,9 @@ export async function getProductBySlug(
   return (await getCatalog()).find((product) => product.slug === slug);
 }
 
-/** Productos de una categoría, en el orden del catálogo. */
+/** Productos de una categoría (slug de la lista vigente), en el orden del catálogo. */
 export async function getProductsByCategory(
-  category: Category,
+  category: string,
 ): Promise<Product[]> {
   return (await getCatalog()).filter(
     (product) => product.category === category,
@@ -118,23 +138,32 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 /**
- * Categorías con su etiqueta legible y número de productos.
- * Solo incluye categorías con al menos un producto (una categoría vacía no
- * tiene sentido en la navegación del catálogo).
+ * Categorías VIGENTES (getCategoryList, orden de posicion) con su etiqueta
+ * legible y número de productos. Misma forma de retorno de siempre — los
+ * consumidores no se enteran del cambio de fuente (F2.5: antes CATEGORIES
+ * compilado, ahora datos). Solo incluye categorías con al menos un
+ * producto (una categoría vacía no tiene sentido en la navegación del
+ * catálogo).
  */
 export async function getCategoriesWithCounts(): Promise<
   Array<{
-    category: Category;
+    category: string;
     name: string;
     count: number;
   }>
 > {
-  const catalog = await getCatalog();
-  return CATEGORIES.map((category) => ({
-    category,
-    name: CATEGORY_INFO[category].name,
-    count: catalog.filter((product) => product.category === category).length,
-  })).filter((entry) => entry.count > 0);
+  const [catalog, categorias] = await Promise.all([
+    getCatalog(),
+    getCategoryList(),
+  ]);
+  return categorias
+    .map((categoria) => ({
+      category: categoria.slug,
+      name: categoria.nombre,
+      count: catalog.filter((product) => product.category === categoria.slug)
+        .length,
+    }))
+    .filter((entry) => entry.count > 0);
 }
 
 /**

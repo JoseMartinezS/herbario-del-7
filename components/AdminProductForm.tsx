@@ -9,7 +9,7 @@ import AdminImageInput from "@/components/AdminImageInput";
 import { createProductAction, updateProductAction } from "@/app/admin/actions";
 import { MAX_PRICE } from "@/lib/admin-schema";
 import { slugify } from "@/lib/slugify";
-import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
+import categoriasSemilla from "@/content/categories.json";
 import type { AdminProduct } from "@/lib/admin-products";
 
 /**
@@ -33,7 +33,24 @@ import type { AdminProduct } from "@/lib/admin-products";
  *
  * La foto se elige y comprime acá (AdminImageInput + canvas) y viaja a
  * la action como archivo ya liviano.
+ *
+ * F2.5: las familias del <select> ya no son un enum compilado — se leen
+ * de content/categories.json (la semilla, mismos datos que antes tenía
+ * el código). Es la fuente build-time del formulario a propósito: la
+ * lista DINÁMICA (tabla categories) la servirá el panel del build B
+ * pasándola desde el server; acá llega como dato estático y el bundle
+ * no cambia.
  */
+
+/**
+ * Familias del mostrador para el <select>, ordenadas por posición.
+ * Mismos datos que CATEGORIES/CATEGORY_INFO traían compilados: el JSON
+ * local es la semilla de referencia del repo.
+ */
+const CATEGORIAS_FORMULARIO: ReadonlyArray<{
+  slug: string;
+  nombre: string;
+}> = [...categoriasSemilla].sort((a, b) => a.posicion - b.posicion);
 
 const formSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio."),
@@ -49,7 +66,7 @@ const formSchema = z.object({
       "Escribe dos párrafos separados por una línea en blanco.",
     ),
   category: z.string().refine(
-    (value) => (CATEGORIES as readonly string[]).includes(value),
+    (value) => CATEGORIAS_FORMULARIO.some((categoria) => categoria.slug === value),
     "Elige una familia del mostrador.",
   ),
   price: z
@@ -255,9 +272,9 @@ export default function AdminProductForm(props: AdminProductFormProps) {
           <option value="" disabled>
             Elige una familia…
           </option>
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {CATEGORY_INFO[category].name}
+          {CATEGORIAS_FORMULARIO.map((categoria) => (
+            <option key={categoria.slug} value={categoria.slug}>
+              {categoria.nombre}
             </option>
           ))}
         </select>

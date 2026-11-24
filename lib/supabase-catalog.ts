@@ -1,4 +1,3 @@
-import { CATEGORIES, isCategory } from "./types";
 import type { Product } from "./types";
 
 /**
@@ -96,10 +95,9 @@ export function getSupabaseCatalogConfig(): SupabaseCatalogConfig | null {
 
 /**
  * Validación ESTRUCTURAL de una fila (tipos y formas), sin lógica de
- * dominio: la categoría se valida en el mapeo (isCategory) y el status se
- * filtra aparte. Es lo que protege el render público: una fila que no
- * cumple esto jamás llega a la UI, porque haría crashing
- * (p. ej. CATEGORY_INFO[category] undefined con una categoría inventada).
+ * dominio: la categoría se valida en el mapeo (contra la lista vigente,
+ * F2.5) y el status se filtra aparte. Es lo que protege el render público:
+ * una fila que no cumple esto jamás llega a la UI.
  *
  * Exportada desde F2.3: el panel (lib/admin-products.ts) reusa la misma
  * validación estructural para sus filas (que además traen `id`).
@@ -137,11 +135,18 @@ export function isProductRow(row: unknown): row is ProductRow {
 
 /**
  * Mapea una fila VALIDADA al tipo Product (snake_case → camelCase).
- * Devuelve null solo si la categoría no es una de las 7 del dominio:
- * el resto ya quedó garantizado por isProductRow.
+ * Devuelve null solo si la categoría no está en la lista vigente: el
+ * resto ya quedó garantizado por isProductRow.
+ *
+ * La lista llega POR PARÁMETRO (F2.5: las categorías son datos, no un
+ * enum compilado — el Set lo arma el loader con getCategoryList antes
+ * de mapear filas). Función pura sobre (fila, lista): testeable sin red.
  */
-export function mapRowToProduct(row: ProductRow): Product | null {
-  if (!isCategory(row.category)) {
+export function mapRowToProduct(
+  row: ProductRow,
+  categoriasValidas: ReadonlySet<string>,
+): Product | null {
+  if (!categoriasValidas.has(row.category)) {
     return null;
   }
   return {
@@ -161,10 +166,14 @@ export function mapRowToProduct(row: ProductRow): Product | null {
  * servibles al público:
  * - descarta filas malformadas (con warn para diagnosticar en Vercel),
  * - descarta filas `retired` (silencioso: retirar es una operación normal),
+ * - descarta categorías fuera de la lista vigente (con warn),
  * - descarta slugs duplicados (protege generateStaticParams y los keys),
  * - mapea a camelCase.
  */
-export function mapRowsToProducts(rows: unknown): Product[] {
+export function mapRowsToProducts(
+  rows: unknown,
+  categoriasValidas: ReadonlySet<string>,
+): Product[] {
   if (!Array.isArray(rows)) {
     return [];
   }
@@ -180,10 +189,10 @@ export function mapRowsToProducts(rows: unknown): Product[] {
     if (row.status !== "published") {
       continue;
     }
-    const product = mapRowToProduct(row);
+    const product = mapRowToProduct(row, categoriasValidas);
     if (product === null) {
       console.warn(
-        `[catálogo] fila "${row.slug}" ignorada: categoría "${row.category}" fuera de las ${CATEGORIES.length} del sitio.`,
+        `[catálogo] fila "${row.slug}" ignorada: categoría "${row.category}" no está en la lista de categorías del sitio.`,
       );
       continue;
     }
@@ -201,11 +210,14 @@ export function mapRowsToProducts(rows: unknown): Product[] {
 
 /**
  * Trae el catálogo publicado desde Supabase (una sola llamada REST).
+ * La lista de categorías válidas llega por parámetro (la arma el loader
+ * con getCategoryList): acá no se carga nada extra ni se conocen enums.
  * Lanza Error si la respuesta no es servible: el fallback al JSON local
  * vive en lib/products.ts.
  */
 export async function fetchSupabaseProducts(
   config: SupabaseCatalogConfig,
+  categoriasValidas: ReadonlySet<string>,
 ): Promise<Product[]> {
   const endpoint =
     `${config.url}/rest/v1/products` +
@@ -226,7 +238,7 @@ export async function fetchSupabaseProducts(
     );
   }
   const rows: unknown = await response.json();
-  const products = mapRowsToProducts(rows);
+  const products = mapRowsToProducts(rows, categoriasValidas);
   if (products.length === 0) {
     throw new Error("la respuesta no dejó ningún producto publicado válido");
   }

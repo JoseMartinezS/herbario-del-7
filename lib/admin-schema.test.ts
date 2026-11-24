@@ -78,12 +78,22 @@ describe("adminProductSchema: los mismos gates del catálogo", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("categoría fuera de las 7 NO pasa", () => {
-    const parsed = adminProductSchema.safeParse({
-      ...productoValido,
-      category: "otros",
-    });
-    expect(parsed.success).toBe(false);
+  it("categoría mal formada NO pasa (la membresía la garantiza la FK de categories)", () => {
+    // F2.5: el schema ya no enumera las 7 — valida la FORMA del slug.
+    expect(
+      adminProductSchema.safeParse({ ...productoValido, category: "Otros" })
+        .success,
+    ).toBe(false);
+    expect(
+      adminProductSchema.safeParse({ ...productoValido, category: "" }).success,
+    ).toBe(false);
+    // Bien formada pero desconocida: el schema la acepta — la membresía
+    // la valida la FK de la tabla categories al escribir (categorías
+    // dinámicas gestionadas desde el panel).
+    expect(
+      adminProductSchema.safeParse({ ...productoValido, category: "amuletos" })
+        .success,
+    ).toBe(true);
   });
 
   it("precio negativo o con centavos NO pasa (entero ≥ 0 o null)", () => {

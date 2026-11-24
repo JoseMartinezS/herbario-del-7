@@ -3,14 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BUSINESS } from "@/content/business";
-import { CATEGORY_INFO } from "@/lib/types";
+import {
+  estiloDeCategoria,
+  getCategoryList,
+  nombreDeCategoria,
+} from "@/lib/categories";
 import {
   getFeaturedProducts,
   getProductBySlug,
   getProducts,
   getProductsByCategory,
 } from "@/lib/products";
-import ProductCard, { CATEGORY_STYLES } from "@/components/ProductCard";
+import ProductCard from "@/components/ProductCard";
 import ProductJsonLd from "@/components/ProductJsonLd";
 import SectionHeading from "@/components/SectionHeading";
 import {
@@ -63,7 +67,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const categoryInfo = CATEGORY_INFO[product.category];
+  // La familia se resuelve contra la lista VIGENTE (F2.5): etiqueta y
+  // tinte salen de los helpers con fallback, no de un Record compilado.
+  const categorias = await getCategoryList();
+  const nombreFamilia = nombreDeCategoria(categorias, product.category);
   const whatsappUrl = `${BUSINESS.whatsapp.url}?text=${encodeURIComponent(
     `Hola, me interesa: ${product.name} (lo vi en el sitio web)`,
   )}`;
@@ -82,7 +89,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const relatedHeading =
     sameCategory.length > 0
       ? {
-          title: `Más de ${categoryInfo.name}`,
+          title: `Más de ${nombreFamilia}`,
           intro: "Otros productos de esta misma familia.",
         }
       : {
@@ -93,7 +100,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <>
       {/* Datos estructurados de la ficha: Product + BreadcrumbList. */}
-      <ProductJsonLd product={product} />
+      <ProductJsonLd product={product} nombreCategoria={nombreFamilia} />
 
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20">
         {/* Miga de pan: Catálogo › Categoría › Producto */}
@@ -115,7 +122,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 href={`/catalogo?categoria=${product.category}`}
                 className="underline-offset-4 transition-colors hover:text-green-800 hover:underline"
               >
-                {categoryInfo.name}
+                {nombreFamilia}
               </Link>
             </li>
             <li aria-hidden="true" className="flex items-center">
@@ -147,9 +154,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div>
             <Link
               href={`/catalogo?categoria=${product.category}`}
-              className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-medium underline-offset-4 transition-colors hover:underline ${CATEGORY_STYLES[product.category]}`}
+              className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-medium underline-offset-4 transition-colors hover:underline ${estiloDeCategoria(
+                categorias,
+                product.category,
+              )}`}
             >
-              {categoryInfo.name}
+              {nombreFamilia}
             </Link>
 
             <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-balance text-green-800 sm:text-4xl lg:text-5xl">
@@ -225,7 +235,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((relatedProduct) => (
               <li key={relatedProduct.slug} className="h-full">
-                <ProductCard product={relatedProduct} />
+                <ProductCard
+                  product={relatedProduct}
+                  categorias={categorias}
+                />
               </li>
             ))}
           </ul>

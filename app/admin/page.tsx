@@ -25,7 +25,7 @@ import {
   paginar,
   parsePageParam,
 } from "@/lib/pagination";
-import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
+import { getCategoryList, nombreDeCategoria } from "@/lib/categories";
 import { logoutAction } from "./actions";
 
 /**
@@ -183,6 +183,11 @@ export default async function AdminPage({
   const okParam = primerParametro(params.ok);
   const mensajeOk = okParam !== undefined ? (MENSAJES_OK[okParam] ?? null) : null;
   const filtros = parseAdminFilters(params);
+
+  // Categorías vigentes (datos, no enum): alimentan los chips del filtro
+  // y la etiqueta de familia de cada fila. Comparten fetch con
+  // listAdminProducts gracias a la memoización de lib/categories.ts.
+  const categorias = await getCategoryList();
 
   // Sin fallback a products.json a propósito: el panel administra la
   // base REAL. Si no se puede leer, se muestra el error y un reintento
@@ -449,13 +454,16 @@ export default async function AdminPage({
                         Todas
                       </Chip>
                     </li>
-                    {CATEGORIES.map((category) => (
-                      <li key={category}>
+                    {categorias.map((categoria) => (
+                      <li key={categoria.slug}>
                         <Chip
-                          href={adminProductsHref({ ...filtros, category })}
-                          activo={filtros.category === category}
+                          href={adminProductsHref({
+                            ...filtros,
+                            category: categoria.slug,
+                          })}
+                          activo={filtros.category === categoria.slug}
                         >
-                          {CATEGORY_INFO[category].name}
+                          {categoria.nombre}
                         </Chip>
                       </li>
                     ))}
@@ -553,7 +561,7 @@ export default async function AdminPage({
                             ) : null}
                           </div>
                           <p className="text-xs text-green-800/70 sm:text-sm">
-                            {CATEGORY_INFO[product.category].name}
+                            {nombreDeCategoria(categorias, product.category)}
                             <span className="text-green-800/50"> · #{product.position}</span>
                           </p>
                           <div className="flex flex-wrap items-center gap-2">

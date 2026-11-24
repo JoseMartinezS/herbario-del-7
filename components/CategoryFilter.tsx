@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { Category } from "@/lib/types";
-import { CATEGORY_STYLES } from "./ProductCard";
+import { estiloDeCategoria } from "@/lib/categories";
+import type { Categoria } from "@/lib/types";
 
 /**
  * Filtro de catálogo por categoría: píldoras-enlace (server-side, cero JS).
@@ -8,24 +8,27 @@ import { CATEGORY_STYLES } from "./ProductCard";
  * Cada chip es un `<Link>` porque navega a una vista distinta de la URL
  * (guideline: el estado vive en el query param `?categoria=`), y el chip
  * activo marca `aria-current="page"`. El focus-visible lo resuelve el
- * outline terracota global de globals.css; el tinte del chip activo hereda
- * el lenguaje de los badges de familia de ProductCard (CATEGORY_STYLES).
+ * outline terracota global de globals.css; el tinte del chip activo sale
+ * de estiloDeCategoria (el mismo lenguaje cromático de los badges de
+ * familia de ProductCard).
  */
 
 /** Entrada de categoría con conteo (forma de getCategoriesWithCounts). */
 interface CategoryFilterOption {
-  category: Category;
+  category: string;
   name: string;
   count: number;
 }
 
 interface CategoryFilterProps {
   /** Categoría activa; `null` significa “Todas”. */
-  active: Category | null;
+  active: string | null;
   /** Categorías con al menos un producto. */
   options: CategoryFilterOption[];
   /** Total del catálogo, para el conteo del chip “Todas”. */
   totalCount: number;
+  /** Categorías vigentes: el tinte del chip activo (estiloDeCategoria). */
+  categorias: readonly Categoria[];
 }
 
 /** Base común de cada chip: mismo grosor de borde activo/inactivo para
@@ -50,6 +53,7 @@ export default function CategoryFilter({
   active,
   options,
   totalCount,
+  categorias,
 }: CategoryFilterProps) {
   return (
     <nav aria-label="Filtrar catálogo por categoría">
@@ -77,7 +81,7 @@ export default function CategoryFilter({
                 aria-current={isActive ? "page" : undefined}
                 className={
                   isActive
-                    ? `${CHIP_BASE} ${CATEGORY_STYLES[category]} font-semibold`
+                    ? `${CHIP_BASE} ${estiloDeCategoria(categorias, category)} font-semibold`
                     : `${CHIP_BASE} ${CHIP_IDLE}`
                 }
               >

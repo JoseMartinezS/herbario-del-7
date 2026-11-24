@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BUSINESS } from "@/content/business";
-import { CATEGORIES, CATEGORY_INFO } from "@/lib/types";
+import { getCategoryList } from "@/lib/categories";
 import { getCategoriesWithCounts, getFeaturedProducts } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 import SectionHeading from "@/components/SectionHeading";
@@ -88,6 +88,9 @@ function SealMedallion() {
 
 export default async function HomePage() {
   const featured = await getFeaturedProducts();
+  // La grilla de familias se arma sobre la lista VIGENTE (datos, no un
+  // enum compilado): hoy son las 7 de siempre con su orden de siempre.
+  const categorias = await getCategoryList();
   const categoriesWithCounts = await getCategoriesWithCounts();
 
   return (
@@ -136,22 +139,22 @@ export default async function HomePage() {
           intro="Siete rincones de la casa: hierbas y preparados de siempre, veladoras para cada intención y cuidado personal con productos naturales."
         />
         <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {CATEGORIES.map((category) => {
-            const info = CATEGORY_INFO[category];
+          {categorias.map((categoria) => {
             const count =
-              categoriesWithCounts.find((entry) => entry.category === category)
-                ?.count ?? 0;
+              categoriesWithCounts.find(
+                (entry) => entry.category === categoria.slug,
+              )?.count ?? 0;
             return (
-              <li key={category} className="h-full">
+              <li key={categoria.slug} className="h-full">
                 <Link
-                  href={`/catalogo?categoria=${category}`}
+                  href={`/catalogo?categoria=${categoria.slug}`}
                   className="group flex h-full flex-col gap-3 rounded-xl border border-sand bg-white/70 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-400 hover:bg-white hover:shadow-md motion-reduce:transition-none"
                 >
                   <span className="font-display text-xl font-semibold text-green-800 transition-colors group-hover:text-green-700">
-                    {info.name}
+                    {categoria.nombre}
                   </span>
                   <span className="text-pretty text-sm leading-relaxed text-green-800/70">
-                    {info.description}
+                    {categoria.descripcion}
                   </span>
                   <span className="mt-auto pt-1 text-xs font-medium text-green-800/70">
                     {count} {count === 1 ? "producto" : "productos"}
@@ -173,7 +176,7 @@ export default async function HomePage() {
           <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((product) => (
               <li key={product.slug} className="h-full">
-                <ProductCard product={product} />
+                <ProductCard product={product} categorias={categorias} />
               </li>
             ))}
           </ul>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BUSINESS } from "@/content/business";
-import { CATEGORIES, CATEGORY_INFO, type Category } from "@/lib/types";
+import { getCategoryList, nombreDeCategoria } from "@/lib/categories";
+import type { Categoria } from "@/lib/types";
 import {
   getCategoriesWithCounts,
   getProducts,
@@ -41,14 +42,19 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 /**
- * Valida el query param `categoria` contra las categorías reales.
- * Acepta `string | string[]` (si el parámetro se repite en la URL llega como
- * arreglo) y degrada a “Todas” ante cualquier valor inválido o vacío.
+ * Valida el query param `categoria` contra la lista VIGENTE de categorías
+ * (F2.5: llegó como parámetro porque ya no hay enum compilado que la
+ * reemplace). Acepta `string | string[]` (si el parámetro se repite en la
+ * URL llega como arreglo) y degrada a “Todas” ante cualquier valor
+ * inválido, vacío o desconocido.
  */
-function parseCategory(value: string | string[] | undefined): Category | null {
+function parseCategory(
+  value: string | string[] | undefined,
+  categorias: readonly Categoria[],
+): string | null {
   if (typeof value !== "string") return null;
-  return (CATEGORIES as readonly string[]).includes(value)
-    ? (value as Category)
+  return categorias.some((categoria) => categoria.slug === value)
+    ? value
     : null;
 }
 
@@ -63,7 +69,8 @@ export default async function CatalogoPage({
   searchParams,
 }: CatalogoPageProps) {
   const { categoria, page } = await searchParams;
-  const active = parseCategory(categoria);
+  const categorias = await getCategoryList();
+  const active = parseCategory(categoria, categorias);
 
   const allProducts = await getProducts();
   const categoriesWithCounts = await getCategoriesWithCounts();
@@ -86,7 +93,7 @@ export default async function CatalogoPage({
   const countLabel = active
     ? `${products.length} ${
         products.length === 1 ? "producto" : "productos"
-      } en ${CATEGORY_INFO[active].name}`
+      } en ${nombreDeCategoria(categorias, active)}`
     : `${products.length} ${
         products.length === 1 ? "producto" : "productos"
       }`;
@@ -113,6 +120,7 @@ export default async function CatalogoPage({
             active={active}
             options={categoriesWithCounts}
             totalCount={allProducts.length}
+            categorias={categorias}
           />
         </div>
 
@@ -124,7 +132,7 @@ export default async function CatalogoPage({
           <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {itemsPagina.map((product) => (
               <li key={product.slug} className="h-full">
-                <ProductCard product={product} />
+                <ProductCard product={product} categorias={categorias} />
               </li>
             ))}
           </ul>
@@ -137,7 +145,7 @@ export default async function CatalogoPage({
             </p>
             <p className="mx-auto mt-3 max-w-md text-pretty text-sm leading-relaxed text-green-800/70">
               {active
-                ? `Por ahora no hay productos publicados en ${CATEGORY_INFO[active].name}. Vuelve pronto: el mostrador se surte seguido.`
+                ? `Por ahora no hay productos publicados en ${nombreDeCategoria(categorias, active)}. Vuelve pronto: el mostrador se surte seguido.`
                 : "Por ahora no hay productos publicados. Escríbenos por WhatsApp si buscas algo en particular y te decimos qué hay en mostrador."}
             </p>
             <p className="mt-6">

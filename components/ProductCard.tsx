@@ -1,35 +1,31 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CATEGORY_INFO, type Category, type Product } from "@/lib/types";
+import { estiloDeCategoria, nombreDeCategoria } from "@/lib/categories";
+import type { Categoria, Product } from "@/lib/types";
 
 /**
  * Tarjeta de producto del catálogo. Reutilizable en cualquier grid:
  * - `product`: producto tipado desde lib/products.ts.
+ * - `categorias`: la lista vigente (getCategoryList): de acá salen la
+ *   etiqueta legible y el tinte del badge de familia. Con categorías
+ *   dinámicas (F2.5) nadie indexa un Record compilado — los helpers de
+ *   lib/categories.ts resuelven con fallback y nunca crashean.
  * - `sizes`: srcset de next/image según el ancho que ocupa la tarjeta
  *   en el grid donde vive (por defecto asume 1 col móvil / 2 tablet / 3 desktop).
  * - La tarjeta se estira (`h-full`) para alinear precios en filas desiguales.
  */
 
-/** Tinte del badge por categoría: verde para lo vegetal, terracota para lo
-    cálido (veladoras, lociones) y dorado para resinas/suplementos. */
-export const CATEGORY_STYLES: Record<Category, string> = {
-  veladoras: "border-terracotta-200 bg-terracotta-100 text-terracotta-800",
-  "hierbas-y-preparados": "border-green-200 bg-green-100 text-green-800",
-  "aguas-y-riegos": "border-green-200 bg-green-50 text-green-700",
-  lociones: "border-terracotta-200 bg-terracotta-50 text-terracotta-800",
-  "capsulas-y-suplementos": "border-gold-200 bg-gold-100 text-gold-800",
-  "cuidado-personal": "border-green-200 bg-green-100 text-green-800",
-  "sahumerios-e-inciensos": "border-gold-300 bg-gold-100 text-gold-900",
-};
-
 interface ProductCardProps {
   product: Product;
+  /** Categorías vigentes (para la etiqueta y el tinte del badge). */
+  categorias: readonly Categoria[];
   /** sizes de next/image según el grid contenedor. */
   sizes?: string;
 }
 
 export default function ProductCard({
   product,
+  categorias,
   sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
 }: ProductCardProps) {
   return (
@@ -49,9 +45,12 @@ export default function ProductCard({
       </div>
       <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5">
         <span
-          className={`self-start rounded-full border px-2.5 py-0.5 text-xs font-medium ${CATEGORY_STYLES[product.category]}`}
+          className={`self-start rounded-full border px-2.5 py-0.5 text-xs font-medium ${estiloDeCategoria(
+            categorias,
+            product.category,
+          )}`}
         >
-          {CATEGORY_INFO[product.category].name}
+          {nombreDeCategoria(categorias, product.category)}
         </span>
         <h3 className="font-display text-lg font-semibold leading-snug text-green-800">
           {product.name}

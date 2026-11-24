@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import categoriasSemilla from "@/content/categories.json";
 import { buildBreadcrumbSchema, buildProductSchema } from "./product-schema";
+import { nombreDeCategoria } from "./categories";
 import type { Product } from "./types";
 
 /**
@@ -13,6 +15,14 @@ import type { Product } from "./types";
 /** URL pública del sitio (lib/site.ts); pasada explícita para que el
  * test no dependa del entorno. */
 const SITE_URL = "https://herbariodel7.com";
+
+/**
+ * Etiqueta legible de la categoría del fixture, resuelta contra la
+ * SEMILLA real (F2.5): el generador ya no indexa un Record compilado,
+ * recibe la etiqueta por parámetro — así se fija que la cadena que
+ * sale al JSON-LD es la misma que vive en categories.json.
+ */
+const NOMBRE_VELADORAS = nombreDeCategoria(categoriasSemilla, "veladoras");
 
 /**
  * Producto SINTÉTICO con precio: el catálogo real se publica entero con
@@ -47,7 +57,11 @@ const veladorasPreparadas = {
 
 describe("buildProductSchema", () => {
   it("debería incluir offers con priceCurrency MXN cuando el producto tiene precio", () => {
-    const schema = buildProductSchema(veladoraConPrecio, SITE_URL);
+    const schema = buildProductSchema(
+      veladoraConPrecio,
+      SITE_URL,
+      NOMBRE_VELADORAS,
+    );
 
     expect(schema.offers).toBeDefined();
     expect(schema.offers?.price).toBe(45);
@@ -56,7 +70,11 @@ describe("buildProductSchema", () => {
   });
 
   it("debería salir SIN offers cuando el precio es null (consulta por WhatsApp)", () => {
-    const schema = buildProductSchema(veladorasPreparadas, SITE_URL);
+    const schema = buildProductSchema(
+      veladorasPreparadas,
+      SITE_URL,
+      NOMBRE_VELADORAS,
+    );
 
     expect(schema.offers).toBeUndefined();
     expect("offers" in schema).toBe(false);
@@ -64,7 +82,11 @@ describe("buildProductSchema", () => {
 
   it("debería construir image y url absolutas a partir de la ruta pública de la imagen", () => {
     for (const product of [veladoraConPrecio, veladorasPreparadas]) {
-      const schema = buildProductSchema(product, SITE_URL);
+      const schema = buildProductSchema(
+        product,
+        SITE_URL,
+        NOMBRE_VELADORAS,
+      );
 
       expect(schema.image).toBe(`${SITE_URL}${product.image}`);
       expect(schema.url).toBe(`${SITE_URL}/catalogo/${product.slug}`);
@@ -73,8 +95,12 @@ describe("buildProductSchema", () => {
     }
   });
 
-  it("debería usar la etiqueta legible de la categoría y la descripción corta", () => {
-    const schema = buildProductSchema(veladoraConPrecio, SITE_URL);
+  it("debería usar la etiqueta legible de la semilla y la descripción corta", () => {
+    const schema = buildProductSchema(
+      veladoraConPrecio,
+      SITE_URL,
+      NOMBRE_VELADORAS,
+    );
 
     expect(schema.category).toBe("Veladoras");
     expect(schema.description).toBe(veladoraConPrecio.shortDescription);
@@ -91,14 +117,18 @@ describe("buildProductSchema", () => {
         "https://mmvifyolydrohrfffqtl.supabase.co/storage/v1/object/public/products/veladoras-preparadas.jpg",
     } satisfies Product;
 
-    const schema = buildProductSchema(product, SITE_URL);
+    const schema = buildProductSchema(product, SITE_URL, NOMBRE_VELADORAS);
 
     expect(schema.image).toBe(product.image);
     expect(schema.image.startsWith(SITE_URL)).toBe(false);
   });
 
   it("debería prefijar SITE_URL cuando image es una ruta relativa (modo JSON local)", () => {
-    const schema = buildProductSchema(veladorasPreparadas, SITE_URL);
+    const schema = buildProductSchema(
+      veladorasPreparadas,
+      SITE_URL,
+      NOMBRE_VELADORAS,
+    );
 
     expect(schema.image).toBe(
       `${SITE_URL}${veladorasPreparadas.image}`,

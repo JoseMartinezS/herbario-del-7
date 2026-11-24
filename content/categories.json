@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "veladoras",
+    "nombre": "Veladoras",
+    "descripcion": "Veladoras de 7 días y aromáticas para acompañar tus peticiones y devociones.",
+    "posicion": 1
+  },
+  {
+    "slug": "hierbas-y-preparados",
+    "nombre": "Hierbas y preparados",
+    "descripcion": "Hierbas frescas, tés y preparados tradicionales de la herbolaria mexicana.",
+    "posicion": 2
+  },
+  {
+    "slug": "aguas-y-riegos",
+    "nombre": "Aguas y riegos",
+    "descripcion": "Aguas aromáticas y de riego para limpiar y armonizar tus espacios.",
+    "posicion": 3
+  },
+  {
+    "slug": "lociones",
+    "nombre": "Lociones",
+    "descripcion": "Lociones y aguas de tocador elaboradas con hierbas.",
+    "posicion": 4
+  },
+  {
+    "slug": "capsulas-y-suplementos",
+    "nombre": "Cápsulas y suplementos",
+    "descripcion": "Cápsulas y suplementos naturales para tu rutina diaria.",
+    "posicion": 5
+  },
+  {
+    "slug": "cuidado-personal",
+    "nombre": "Cuidado personal",
+    "descripcion": "Jabones, shampoos y productos naturales para piel y cabello.",
+    "posicion": 6
+  },
+  {
+    "slug": "sahumerios-e-inciensos",
+    "nombre": "Sahumerios e Inciensos",
+    "descripcion": "Copal, resinas e inciensos para sahumar la casa y acompañar tus peticiones.",
+    "posicion": 7
+  }
+]
